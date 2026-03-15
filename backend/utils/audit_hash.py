@@ -13,7 +13,7 @@ def generate_audit_hash(evidence_card: Dict[str, Any], previous_hash: str) -> st
     
     return hashlib.sha256(payload_string.encode('utf-8')).hexdigest()
 
-def log_to_audit(ticket_id: str, decision: str, evidence_card: Dict[str, Any], supabase_client) -> str:
+def log_to_audit(ticket_id: str, decision: str, evidence_card: Dict[str, Any], supabase_client, latency_ms: int = 0) -> str:
     """
     Fetches the previous hash, calculates the new hash, and inserts the
     audit log entry into Supabase. Returns the newly generated hash.
@@ -30,7 +30,8 @@ def log_to_audit(ticket_id: str, decision: str, evidence_card: Dict[str, Any], s
         "decision": decision,
         "evidence_card": evidence_card,
         "previous_hash": previous_hash,
-        "audit_hash": new_hash
+        "audit_hash": new_hash,
+        "latency_ms": latency_ms
     }
     supabase_client.insert_audit_log(log_data)
     

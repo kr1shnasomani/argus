@@ -38,24 +38,70 @@ export interface TicketStatusDetail {
 }
 
 export interface EvidenceCard {
-  ticket_id: string;
+  ticket_id: string; // from backend explicitly added as ticket_id: t["id"]
+  id?: string;
   description: string;
   category: string;
   severity: string;
   created_at: string;
   user_tier: string;
+  status: string;
   user_email?: string;
-  layer_intercepted: number | null;
-  escalation_reason: string;
-  signals: Record<string, ConfidenceSignal>;
-  is_novel: boolean;
-  candidate_fixes: Array<{
-    ticket_id: string;
-    similarity: number;
+  
+  evidence_card?: {
+    layer_intercepted: number | null;
+    escalation_reason?: string;
+    signals?: Record<string, ConfidenceSignal>;
+    is_novel?: boolean;
+    candidate_fixes?: Array<{
+      ticket_id: string;
+      similarity: number;
+      resolution: string;
+      success_rate: number;
+    }>;
+    sandbox_passed?: boolean;
+    resolution?: string;
+    resolution_applied?: string;
+    decision_latency?: number | { total_ms?: number };
+  };
+  
+  outcome?: any;
+  decision_latency_ms?: number;
+  candidate_fixes?: Array<{
+    ticket_id?: string;
+    similarity?: number;
+    similarity_score?: number;
     resolution: string;
-    success_rate: number;
+    success_rate?: number;
   }>;
-  total_latency_ms: number;
+  resolution_applied?: string | null;
+  sandbox_passed?: boolean | null;
+  escalation_reason?: string | null;
+  signal_a?: number | null;
+  signal_b?: number | null;
+  signal_c?: number | null;
+  threshold_a?: number | null;
+  threshold_b?: number | null;
+  threshold_c?: number | null;
+  max_similarity?: number | null;
+  layer_intercepted?: number | null;
+  total_latency_ms?: number | null;
+}
+
+export interface AgentQueueTicket {
+  ticket_id: string;
+  id?: string;
+  description: string;
+  category: string;
+  severity: string;
+  created_at: string;
+  status: string;
+  user_tier?: string;
+  escalation_reason?: string | null;
+  decision_latency_ms?: number | null;
+  evidence_card?: {
+    escalation_reason?: string;
+  };
 }
 
 export interface AuditEntry {
@@ -106,4 +152,16 @@ export interface DriftData {
   analyzed_categories: number;
   drift_detected: number;
   categories: CategoryDrift[];
+}
+
+export interface TicketHistoryRow {
+  id: string;
+  user_id: string;
+  description: string;
+  category: string;
+  severity: string;
+  status: string;
+  created_at: string;
+  resolved_at: string | null;
+  users: { email: string } | null;
 }

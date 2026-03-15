@@ -1,0 +1,140 @@
+                    <BookOpen size={12} /> Candidate Solutions
+                  </h4>
+                  <div className="space-y-2">
+                    {card.candidate_fixes.map((fix, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="candidate-fix p-3.5 rounded-xl border cursor-pointer"
+                        style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}
+                        onClick={() => setResolutionText(fix.resolution)}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.08, duration: 0.3 }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span className="font-mono text-xs font-medium" style={{ color: 'var(--argus-indigo)' }}>#{fix.ticket_id.substring(0, 8)}</span>
+                          <span className="text-[10px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
+                            {(fix.similarity * 100).toFixed(1)}% match
+                          </span>
+                        </div>
+                        <p className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>{fix.resolution}</p>
+                        <p className="text-[10px] mt-1.5 text-right" style={{ color: 'var(--argus-text-muted)' }}>↑ Click to apply</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Latency */}
+              <div className="flex items-center gap-2 pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                <Zap size={11} style={{ color: 'var(--argus-indigo)' }} />
+                Total inference latency:
+                <span className="font-mono font-semibold" style={{ color: 'var(--argus-text-primary)' }}>
+                  {card.total_latency_ms != null ? `${card.total_latency_ms.toFixed(0)}ms` : 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Resolution Workspace */}
+        <div className="lg:col-span-5">
+          <div className="sticky top-6">
+            <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
+              <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--argus-indigo) 0%, #7C3AED 100%)' }} />
+              <form onSubmit={handleSubmit}>
+                <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                  <h3 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Submit Human Resolution</h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>Resolve this ticket and train the Argus model.</p>
+                </div>
+                <div className="p-5 space-y-5">
+
+                  {/* Resolution Text */}
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Resolution Steps</Label>
+                    <Textarea
+                      required
+                      placeholder="Detail the steps taken to resolve this issue..."
+                      rows={7}
+                      className="resize-none text-sm"
+                      style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}
+                      value={resolutionText}
+                      onChange={(e) => setResolutionText(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Resolution Type */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Feedback Type to AI</Label>
+                    <RadioGroup value={resolutionType} onValueChange={(val: any) => setResolutionType(val)} className="space-y-2">
+                      {[
+                        { value: 'reusable', label: 'Verified Reusable Fix', desc: 'Embeds into vector knowledge base to train AI.', accent: 'var(--argus-indigo-light)', border: 'rgba(79,70,229,0.3)' },
+                        { value: 'workaround', label: 'Temporary Workaround', desc: 'Resolves ticket but AI will not learn from it.', accent: 'var(--argus-amber-light)', border: 'rgba(217,119,6,0.2)' },
+                        { value: 'uncertain', label: 'Uncertain / Site-Specific', desc: 'Highly specific — do NOT train AI.', accent: 'var(--argus-surface-2)', border: 'var(--argus-border)' },
+                      ].map(opt => (
+                        <div
+                          key={opt.value}
+                          className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+                          style={{ background: resolutionType === opt.value ? opt.accent : 'var(--argus-surface-2)', borderColor: resolutionType === opt.value ? opt.border : 'var(--argus-border)' }}
+                          onClick={() => setResolutionType(opt.value as any)}
+                        >
+                          <RadioGroupItem value={opt.value} id={`r-${opt.value}`} className="mt-0.5" />
+                          <div>
+                            <Label htmlFor={`r-${opt.value}`} className="font-semibold text-xs cursor-pointer" style={{ color: 'var(--argus-text-primary)' }}>
+                              {opt.label}
+                            </Label>
+                            <p className="text-[11px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>{opt.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+
+                  <Separator style={{ background: 'var(--argus-border)' }} />
+
+                  {/* Override Reason */}
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>
+                      Override Context <span style={{ color: 'var(--argus-text-muted)', fontWeight: 400 }}>(optional)</span>
+                    </Label>
+                    <Select value={overrideReason} onValueChange={setOverrideReason}>
+                      <SelectTrigger style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
+                        <SelectValue placeholder="Why did the AI fail?" />
+                      </SelectTrigger>
+                      <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+                        <SelectItem value="missing_context" style={{ color: 'var(--argus-text-primary)' }}>Missing system context</SelectItem>
+                        <SelectItem value="incorrect_suggestion" style={{ color: 'var(--argus-text-primary)' }}>AI suggested incorrect fix</SelectItem>
+                        <SelectItem value="vip_policy" style={{ color: 'var(--argus-text-primary)' }}>VIP Policy Gate correctly triggered</SelectItem>
+                        <SelectItem value="novel_issue" style={{ color: 'var(--argus-text-primary)' }}>Completely novel issue class</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {resolveMutation.isError && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg border text-sm" style={{ background: 'var(--argus-red-light)', borderColor: 'rgba(220,38,38,0.2)', color: 'var(--argus-red)' }}>
+                      <AlertCircle size={14} /> Failed to submit resolution.
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={resolveMutation.isPending || !resolutionText}
+                    className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
+                  >
+                    {resolveMutation.isPending ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
+                    ) : (
+                      "Submit Resolution →"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};

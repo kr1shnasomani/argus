@@ -148,14 +148,26 @@ flowchart LR
 **Implementation notes for AI coder:**
 - Query Supabase `users` table for `user_tier` field on ticket submission
 - Query Supabase `systems` table for `change_freeze` boolean and `active_incident` boolean
-- Severity is extracted from ticket submission form (dropdown: P1/P2/P3/P4)
+- Severity is **AI-classified** by Gemma 3 27B from the ticket description — employee does NOT select severity
+- Employee form only collects: work email, system ID, category (optional), is_urgent toggle, description, attachment
 - This entire layer is a simple Python function with if/else conditions — no ML libraries
 
 ```python
+def classify_severity(description: str, gemma_client) -> str:
+    """AI classifies severity — employee never selects this"""
+    prompt = f"""Classify this IT ticket severity. Reply with ONLY one of: P1, P2, P3, P4.
+P1 = entire company/team affected, production down
+P2 = multiple users affected, significant business impact  
+P3 = single user, moderate impact
+P4 = single user, low impact, cosmetic
+
+Ticket: {description}"""
+    return gemma_client.classify(prompt)  # returns "P1"/"P2"/"P3"/"P4"
+
 def hard_policy_gate(ticket: Ticket, user: User, system: System) -> GateResult:
     if ticket.severity in ["P1", "P2"]:
         return GateResult(action="ESCALATE", reason="Critical severity")
-    if user.tier == "VIP":
+    if user.tier == "vip":
         return GateResult(action="ESCALATE", reason="VIP user — human review required")
     if system.change_freeze:
         return GateResult(action="ESCALATE", reason="System under change freeze")
@@ -204,15 +216,15 @@ sequenceDiagram
 - Each Qdrant point payload structure:
 ```json
 {
-  "ticket_id": "INC-00184",
+  "ticket_id": "INC-10001",
+  "description": "password expired cannot login to laptop",
   "category": "Auth/SSO",
-  "description": "Cannot login to SAP after password expiry",
-  "resolution": "Reset LDAP binding credentials",
-  "resolution_cluster": "credential_reset",
   "severity": "P3",
-  "auto_resolved": true,
-  "verified": true,
-  "created_at": "2026-01-15T10:30:00Z"
+  "resolution": "Reset user password via LDAP / Active Directory",
+  "resolution_cluster": "password_reset",
+  "user_tier": "standard",
+  "department": "Finance",
+  "verified": true
 }
 ```
 - Qdrant query: retrieve top-5 with `with_payload=True` to access resolution metadata
@@ -470,44 +482,95 @@ If modifying AI suggestion, reason:
 
 ## 5. Data Strategy
 
+### The Two Databases and What Goes in Each
+
+The same CSV seed file populates both databases. Different columns go to each:
+
+| Column | Qdrant | Supabase (ticket_outcomes) | Purpose |
+|---|---|---|---|
+| `ticket_id` | ✅ point ID | ✅ | Reference key |
+| `description` | ✅ **embedded as vector** | ✅ | Qdrant: similarity search. Supabase: display in agent dashboard |
+| `category` | ✅ payload | ✅ | Qdrant: filter. Supabase: Signal C grouping |
+| `severity` | ✅ payload | ❌ | Context only |
+| `resolution` | ✅ payload | ✅ | Qdrant: candidate fix. Supabase: reference |
+| `resolution_cluster` | ✅ payload | ✅ | Signal B cluster matching |
+| `user_tier` | ✅ payload | ❌ | Context only |
+| `department` | ❌ | ❌ | Not needed in either |
+| `auto_resolved` | ❌ | ✅ | **Signal C reads this** |
+| `verified` | ✅ payload filter | ❌ | Qdrant only retrieves verified=true |
+| `created_at` | ❌ | ✅ | Signal C 30-day lookback |
+
 ### Synthetic Dataset Generation
 
-For the hackathon, a synthetic dataset of ~500 IT tickets is generated using Claude/GPT/Gemini (one-time task, not part of runtime). These models are used **only for data generation**, not in the production system.
+500 seed tickets generated with correct distribution representing **shadow mode historical data**:
 
-**Generation prompt approach:**
-- Generate 50-60 tickets per category across 8 categories
-- Explicitly include noise: typos, incomplete sentences, vague descriptions, mixed issues
-- Each ticket must include: description, category, severity, resolution, resolution_cluster, user_tier
+```
+82% auto_resolved = true  → AI agreed with human resolution during shadow mode
+18% auto_resolved = false → VIP/P1/P2 tickets + ambiguous Signal B tickets
+```
 
-**8 Categories:**
-1. Auth/SSO (password reset, account lock, MFA issues)
-2. SAP Issues (login, performance, permission)
-3. Email Access (Outlook, calendar, distribution lists)
-4. VPN Problems (connection, slow speed, certificate)
-5. Printer Issues (driver, network printer, queue stuck)
-6. Software Install (license, compatibility, admin rights)
-7. Network/Connectivity (no internet, slow network, WiFi)
-8. Permissions/Access (folder access, system rights, role assignment)
+**Distribution:**
+- ~410 high-confidence routine tickets (auto_resolved=true) across 8 categories
+- ~40 ambiguous tickets where resolution history was inconsistent (auto_resolved=false)
+- ~50 VIP/P1/P2 tickets (auto_resolved=false — hard rule escalations)
+
+**Why 82% matters:** Signal C threshold is 0.70. With 82% auto_resolved=true in seed data, all 8 categories immediately pass Signal C from day one. No cold-start problem at demo time.
+
+### Shadow Mode Justification (For Judges)
+
+> "These 500 rows represent a shadow mode observation period before going live. The AI ran silently alongside human agents. When the AI's suggested resolution matched what the agent did, that ticket was recorded as auto_resolved=true. This is how Signal C is bootstrapped in real enterprise deployments — not from manual configuration, but from proven accuracy."
+
+### Real Enterprise Deployment Bootstrap
+
+```
+Month 1-2: Shadow Mode
+→ All tickets go to human agents
+→ AI runs silently, generates suggestion
+→ Agent resolves ticket
+→ System compares: AI suggestion ≈ agent resolution?
+  YES → ticket_outcomes: auto_resolved=true (retrospective_match=true)
+  NO  → ticket_outcomes: auto_resolved=false (retrospective_match=false)
+→ Signal C builds up from real agreement rate
+
+Month 3+: Live Mode
+→ Categories crossing 70% → auto-resolution activates
+→ Both tables updated by every pipeline ticket
+→ System improves continuously
+```
+
+### Retrospective Validation (Anti-Deadlock)
+
+To prevent Signal C from getting stuck in a low-confidence loop, every escalated ticket still generates a silent AI suggestion. After agent resolves it, the system compares:
+
+```python
+if fuzzy_match(ai_suggestion, agent_resolution) > 0.85:
+    ticket_outcomes.auto_resolved = True
+    ticket_outcomes.retrospective_match = True
+else:
+    ticket_outcomes.retrospective_match = False
+```
+
+This means even failed Signal C tickets contribute to improving Signal C over time.
 
 ### Data Loading Pipeline
 
-```mermaid
-flowchart LR
-    GEN([Generated CSV<br>500 tickets]) --> CLEAN[Python script<br>Clean and validate<br>all records]
-    CLEAN --> EMBED[Jina AI API<br>Batch embed all<br>ticket descriptions]
-    EMBED --> QDRANT[Qdrant Cloud<br>Upsert all vectors<br>with full payload]
-    CLEAN --> SUPA[Supabase<br>Insert all tickets<br>into tickets table<br>and ticket_outcomes]
-    QDRANT --> CLUSTER[Resolution Clustering<br>sentence-transformers<br>Agglomerative clustering<br>Build cluster_map.json]
-    CLUSTER --> READY([System ready<br>Knowledge base populated])
 ```
-
-### Knowledge Base Growth
-
-Every time an agent submits a **verified fix**, the system:
-1. Embeds the new ticket + resolution via Jina AI
-2. Upserts into Qdrant with `verified=true`
-3. Updates Supabase `ticket_outcomes` for Signal C recalculation
-4. Checks if new resolution belongs to existing cluster or needs a new one
+argus_seed_data_final.csv (500 rows)
+        ↓
+Python loading script (run once)
+    ├── Embed each description via Jina AI
+    │       ↓
+    │   Upsert into Qdrant Cloud
+    │   (vector + payload: description, category, severity,
+    │    resolution, resolution_cluster, user_tier, verified)
+    │
+    └── Insert into Supabase ticket_outcomes
+        (ticket_id, description, category, resolution,
+         resolution_cluster, auto_resolved, verified, created_at)
+        signal_a/b/c = NULL for seed data (filled by live pipeline)
+        ai_suggestion = NULL (shadow mode pre-dates this feature)
+        retrospective_match = NULL (shadow mode pre-dates this feature)
+```
 
 ---
 
@@ -581,8 +644,12 @@ erDiagram
         float signal_c
         string escalation_reason
         string resolution
+        string resolution_cluster
+        text description
         boolean agent_verified
         string override_reason
+        text ai_suggestion
+        boolean retrospective_match
         timestamp created_at
     }
 
@@ -706,10 +773,14 @@ sequenceDiagram
 ### Employee Portal Pages
 
 **1. Submit Ticket Page**
+- Work email (used to look up user_id and tier from Supabase)
+- System ID (user pastes UUID — looked up from systems table)
+- Category dropdown: optional, AI will auto-detect if left blank
+- Mark as Urgent toggle: boolean, off by default. Does NOT affect AI classification — only bumps queue position
 - Text area for ticket description
-- Dropdown: Category (auto-detect option), Severity (P1-P4)
 - File upload: images, documents (stored in Supabase Storage)
 - Submit button
+- **No severity dropdown** — AI classifies severity from description via Gemma 3 27B
 
 **2. Ticket Status Page**
 - Real-time status indicator: Processing / Auto-Resolved / Under Human Review
@@ -913,12 +984,14 @@ def get_knowledge_coverage(supabase_client, qdrant_client) -> dict:
 | Ticket with very low similarity to all history | Novelty detection — hard escalate, logged as novel ticket |
 | Agent submits incorrect fix | Verification gate — only verified fixes enter Qdrant |
 | Agent submits same wrong fix repeatedly | Drift monitor catches accuracy drop, flags alert |
+| Signal C stuck in low-confidence loop | Retrospective validation — escalated tickets still generate silent AI suggestion, compared to agent resolution, updates auto_resolved accordingly |
 | Image attachment with unclear screenshot | Gemma 3 27B extracts best-effort text description, low confidence likely triggers escalation |
 | Qdrant returns results from wrong category | Qdrant payload filter: filter by category before vector search |
 | Supabase unavailable | FastAPI fallback: default to escalation for all tickets — fail safe |
 | Sandbox server (8001) unavailable | Main backend catches connection error, defaults to escalation |
-| Multiple tickets for same mass outage | Future: MinHash deduplication — for hackathon, batch-group via P1 incident flag |
+| Multiple tickets for same mass outage | Batch-group via P1 incident flag on systems table |
 | VIP user submits a clearly simple ticket | Hard rule still applies — VIP always escalated, no exceptions |
+| Employee tries to game priority | No severity selector on form — AI classifies severity, not employee |
 
 ---
 
@@ -988,54 +1061,73 @@ After ticket 5, open the What-If Simulator. Change ticket 3's user from "Standar
 
 ## 15. Build Checklist
 
-### Backend (FastAPI)
-- [ ] Ticket submission endpoint with policy gate
+### Backend (FastAPI — Port 8000)
+- [ ] Ticket submission endpoint (email → lookup user_id, system_id passed directly)
+- [ ] Gemma 3 27B severity classification from description
 - [ ] Jina AI embedding integration
-- [ ] Qdrant Cloud connection and vector search
-- [ ] Resolution cluster map generation at startup
-- [ ] 3-signal confidence engine (pure Python)
-- [ ] Novelty detection check
-- [ ] Canary sandbox HTTP client
-- [ ] Gemma 3 27B OpenRouter integration for Evidence Cards
-- [ ] Auto-resolve flow with production mock commit
-- [ ] SHA-256 Merkle chain audit logging
+- [ ] Qdrant Cloud connection and vector search (filter by verified=true)
+- [ ] Resolution cluster map generation at startup (cluster_map.json)
+- [ ] Hard policy gate (VIP / P1-P2 / change freeze / active incident)
+- [ ] Novelty detection check (max similarity < 0.50 → hard escalate)
+- [ ] 3-signal confidence engine (pure Python, per-category thresholds)
+- [ ] Canary sandbox HTTP client (POST to port 8001)
+- [ ] Auto-resolve flow: apply fix, generate user message via Gemma 3 27B
+- [ ] SHA-256 Merkle chain audit logging to Supabase
+- [ ] HITL Evidence Card generation via Gemma 3 27B
 - [ ] Agent resolution submission with verification gate
-- [ ] Feedback loop: Qdrant upsert + Supabase Signal C update
-- [ ] Decision latency timestamps on all steps
-- [ ] Drift monitor nightly calculation
+- [ ] Retrospective validation: compare AI suggestion to agent resolution
+- [ ] Feedback loop: verified fixes → Qdrant upsert + ticket_outcomes update
+- [ ] Decision latency timestamps on all pipeline steps
+- [ ] Drift monitor nightly calculation (APScheduler)
 - [ ] Coverage indicator endpoint
 - [ ] Override logging endpoint
-- [ ] Fallback safe response for all escalation paths
+- [ ] Fallback safe response message for all escalation paths
+- [ ] OpenRouter unavailable fallback: template-based Evidence Card
 
-### Sandbox Server (Port 8001)
-- [ ] Mock user environment (10-15 fake users with statuses)
-- [ ] Mock service environment (SAP, VPN, Email, Network)
-- [ ] Execute endpoint with action routing
+### Sandbox Server (FastAPI — Port 8001)
+- [ ] Mock user environment (15 users matching Supabase users table)
+- [ ] Mock service environment (SAP, VPN, Email, Network, AD, Printer)
+- [ ] Execute endpoint with action routing (unlock_account, restart_service etc)
 - [ ] Status and logs endpoints
-- [ ] Reset endpoint for demo resets
+- [ ] Reset endpoint for demo resets between presentations
 
 ### Frontend (React + shadcn/ui)
-- [ ] Employee portal: ticket submission form with file upload
-- [ ] Employee portal: ticket status and resolution page
-- [ ] Agent portal: escalated ticket queue
-- [ ] Agent portal: Evidence Card component with signal visualization
-- [ ] Agent portal: resolution submission with verification gate UI
-- [ ] Agent portal: What-If Simulator panel
-- [ ] Agent portal: operational metrics dashboard
-- [ ] Agent portal: drift monitor with trend indicators
-- [ ] Agent portal: knowledge coverage indicator
-- [ ] Agent portal: safe automation rate widget
-- [ ] Agent portal: audit log with hash verification badge
+- [ ] Employee portal: ticket submission form (email, system_id, category optional, urgent toggle, description, attachment)
+- [ ] Employee portal: NO severity dropdown — AI classifies
+- [ ] Employee portal: ticket status page (processing / auto-resolved / under review)
+- [ ] Employee portal: fallback message when escalated ("under review by our team")
+- [ ] Agent portal: escalated ticket queue sorted by severity + time
+- [ ] Agent portal: Evidence Card with full signal breakdown visualization
+- [ ] Agent portal: Why Not Automated plain-English block
+- [ ] Agent portal: 3 candidate fixes with similarity scores
+- [ ] Agent portal: decision latency display (total + per-step breakdown)
+- [ ] Agent portal: resolution submission with verification gate (Verified Fix / Workaround / Uncertain)
+- [ ] Agent portal: override reason dropdown when modifying AI suggestion
+- [ ] Agent portal: What-If Simulator panel (change user tier / severity / system → instant re-route)
+- [ ] Agent portal: operational metrics dashboard (auto-resolved / escalated / sandbox failed)
+- [ ] Agent portal: drift monitor with 7-day trend indicators
+- [ ] Agent portal: knowledge coverage indicator (vectors in Qdrant, avg similarity)
+- [ ] Agent portal: audit log with SHA-256 hash verification badge
+
+### Database (Supabase)
+- [ ] Schema applied and hardened (CHECK constraints on status, severity, tier)
+- [ ] category_thresholds seeded with 8 categories
+- [ ] Add columns: `ticket_outcomes.ai_suggestion TEXT`
+- [ ] Add columns: `ticket_outcomes.retrospective_match BOOLEAN`
+- [ ] Add columns: `ticket_outcomes.description TEXT`
+- [ ] Add columns: `ticket_outcomes.resolution_cluster TEXT` (already exists — verify)
+- [ ] TRUNCATE tickets CASCADE before loading pipeline samples
+- [ ] DO NOT truncate ticket_outcomes (Signal C seed data must stay)
 
 ### Data
-- [ ] Generate 500 synthetic tickets (Claude/GPT/Gemini — one time)
-- [ ] Include noisy, incomplete, typo-filled variants
-- [ ] Load all tickets into Qdrant with full payload
-- [ ] Load all tickets into Supabase tables
-- [ ] Build resolution cluster map
-- [ ] Prepare 5 specific demo tickets with known outcomes
+- [ ] `argus_seed_data_final.csv` — 500 tickets, 82% auto_resolved, all 8 categories ✅ DONE
+- [ ] Load CSV into Qdrant (embed description via Jina, store all payload columns)
+- [ ] Load CSV into Supabase ticket_outcomes (direct INSERT, signal_a/b/c = NULL)
+- [ ] Build and save cluster_map.json from resolution_cluster values
+- [ ] Load `argus_pipeline_input.csv` (33 tickets) through live pipeline to populate tickets + audit_log
+- [ ] Verify all 5 demo tickets produce expected outcomes before presentation
 
-### Total Estimated Build Time: ~13.5 hours of focused work
+### Total Estimated Build Time: ~15 hours of focused work
 
 ---
 

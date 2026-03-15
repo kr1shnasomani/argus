@@ -34,7 +34,7 @@ export const EmployeeLayout = () => {
         className="sticky top-0 z-50 border-b"
         style={{ borderColor: 'var(--argus-border)', background: 'var(--argus-surface)' }}
       >
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           {/* Logo */}
           <Link to="/employee" className="flex items-center gap-2.5">
             <img
@@ -72,7 +72,7 @@ export const EmployeeLayout = () => {
 
       {/* \u2500\u2500\u2500 Page Content \u2500\u2500\u2500 */}
       <main className="flex-1">
-        <div className="max-w-5xl mx-auto px-6 py-10 lg:py-14">
+        <div className="max-w-6xl mx-auto px-6 py-10 lg:py-14">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -89,7 +89,7 @@ export const EmployeeLayout = () => {
 
       {/* \u2500\u2500\u2500 Footer \u2500\u2500\u2500 */}
       <footer className="py-5 border-t" style={{ borderColor: 'var(--argus-border)' }}>
-        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           <p className="text-[11px] font-medium" style={{ color: 'var(--argus-text-muted)' }}>
             Argus IT Support
           </p>

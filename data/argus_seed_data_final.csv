@@ -1,0 +1,501 @@
+ticket_id,description,category,severity,resolution,resolution_cluster,user_tier,department,auto_resolved,verified,created_at
+INC-10000,vpn disconnects every 30 minutes need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Logistics,True,True,2026-01-16T00:00:00Z
+INC-10001,printer driver update broke printing for all windows 10 machines,Printer Issues,P2,Reinstall or update printer driver,printer_driver_install,standard,IT,False,True,2025-01-11T00:00:00Z
+INC-10002,SAP password never expires setting incorrectly applied to my account!!,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Marketing,True,True,2025-10-28T00:00:00Z
+INC-10003,printer connected but only some computers can print,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Logistics,False,True,2025-09-01T00:00:00Z
+INC-10004,SAP logon pad not connecting to correct server need this fixed today,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Finance,True,True,2025-09-25T00:00:00Z
+INC-10005,email stuck in outbox not sending,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Engineering,True,True,2025-03-18T00:00:00Z
+INC-10006,printer not connecting after network change,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,IT,True,True,2025-06-01T00:00:00Z
+INC-10007,vpn client crashed after windows update,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Engineering,True,True,2025-11-08T00:00:00Z
+INC-10008,citrix workspace not launching applications need this fixed today this is urgent,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Legal,True,True,2025-03-24T00:00:00Z
+INC-10009,cant map network drive access denied,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Marketing,True,True,2025-10-03T00:00:00Z
+INC-10010,no internet access at my workstation plz help this is urgent,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,HR,True,True,2025-04-05T00:00:00Z
+INC-10011,entire warehouse network down barcode scanners offline,Network/Connectivity,P1,Enable network port on switch for user device,network_port_enable,standard,IT,False,True,2025-05-30T00:00:00Z
+INC-10012,SAP completely unresponsive since 9am need this fixed today,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Engineering,True,True,2025-02-08T00:00:00Z
+INC-10013,cant connect to wifi in meeting room this is urgent,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Procurement,True,True,2025-04-06T00:00:00Z
+INC-10014,vpn dns resolution failing for internal hostnames,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-01-07T00:00:00Z
+INC-10015,mailbox full cannot receive new emails,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Operations,True,True,2025-03-29T00:00:00Z
+INC-10016,dns resolution failing some sites load some dont,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Operations,True,True,2025-01-18T00:00:00Z
+INC-10017,vpn cert expired need renew urgent!!,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,HR,True,True,2025-05-04T00:00:00Z
+INC-10018,vpn error 812 authentication rejected need this fixed today,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Finance,True,True,2025-07-01T00:00:00Z
+INC-10019,USB ports blocked by policy need exception need this fixed today,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Sales,True,True,2025-02-14T00:00:00Z
+INC-10020,"Hi team, missing SAP roles after system migration",SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Operations,True,True,2025-10-14T00:00:00Z
+INC-10021,user account not synced from HR to AD this is urgent,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Legal,True,True,2026-01-30T00:00:00Z
+INC-10022,outlook keeps asking for password repeatedly!!,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Finance,True,True,2025-04-29T00:00:00Z
+INC-10023,outlook not starting after office 365 update need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Engineering,True,True,2025-01-06T00:00:00Z
+INC-10024,urgent - receiving duplicate emails for every message,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Operations,True,True,2025-04-17T00:00:00Z
+INC-10025,SAP GUI version outdated cannot connect to new server,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Procurement,True,True,2025-12-05T00:00:00Z
+INC-10026,vpn auto connect feature stopped working need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Procurement,True,True,2025-04-22T00:00:00Z
+INC-10027,vpn connected but teams still shows offline please help asap,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Marketing,False,True,2025-11-09T00:00:00Z
+INC-10028,SAP credential reset not working via self service,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Marketing,True,True,2025-12-03T00:00:00Z
+INC-10029,"Hi team, wrong plant assigned to SAP user profile",SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Legal,True,True,2025-10-15T00:00:00Z
+INC-10030,"Hi team, software license tied to old machine need transfer need this fixed today",Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Legal,True,True,2025-02-17T00:00:00Z
+INC-10031,folder showing no access to owner after permission audit,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Marketing,False,True,2025-04-28T00:00:00Z
+INC-10032,cant install software says requires admin rights need this fixed today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Procurement,True,True,2025-10-15T00:00:00Z
+INC-10033,software center not loading on my laptop today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Operations,True,True,2025-04-13T00:00:00Z
+INC-10034,"Hi team, new desk no network connection port not active",Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,IT,True,True,2025-06-11T00:00:00Z
+INC-10035,network printer IP changed now no one can print need this fixed today!!,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,IT,True,True,2025-06-07T00:00:00Z
+INC-10036,onedrive sync blocked by IT policy on this machine,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Legal,True,True,2025-07-16T00:00:00Z
+INC-10037,ip address conflict warning on my machine need this fixed today,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Legal,True,True,2025-08-12T00:00:00Z
+INC-10038,windows password expired need reset,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Sales,True,True,2025-08-04T00:00:00Z
+INC-10039,CEO mailbox full cannot send emails urgent,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,vip,HR,False,True,2025-06-19T00:00:00Z
+INC-10040,MFA app not working after phone change,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Engineering,True,True,2025-08-25T00:00:00Z
+INC-10041,outlook keeps asking for password repeatedly need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Sales,True,True,2025-10-18T00:00:00Z
+INC-10042,printer randomly cancelling jobs mid print,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Sales,True,True,2026-01-30T00:00:00Z
+INC-10043,new joiner needs printer mapped on laptop,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Finance,True,True,2025-03-31T00:00:00Z
+INC-10044,SAP user deactivated after leave this is urgent,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Marketing,True,True,2025-04-09T00:00:00Z
+INC-10045,software trial version expired need full license need this fixed today,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Sales,True,True,2025-07-30T00:00:00Z
+INC-10046,"Hi team, duplex printing not working on shared printer",Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Procurement,True,True,2025-09-16T00:00:00Z
+INC-10047,urgent - secure print jobs not releasing at device with pin,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,IT,True,True,2025-02-06T00:00:00Z
+INC-10048,new role need access to additional systems this is urgent,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Logistics,True,True,2025-05-13T00:00:00Z
+INC-10049,SAP workflow tasks not appearing in my inbox,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,IT,True,True,2025-05-11T00:00:00Z
+INC-10050,SAP transaction blocked getting authorisation error,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Sales,True,True,2025-05-16T00:00:00Z
+INC-10051,entire company cannot access emails since server migration,Email Access,P1,Rebuild or repair Outlook profile,email_profile_repair,standard,Legal,False,True,2025-05-07T00:00:00Z
+INC-10052,"Hi team, outlook disconnected from exchange shows working offline",Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Legal,True,True,2025-09-20T00:00:00Z
+INC-10053,entire floor network down after maintenance work,Network/Connectivity,P2,Enable network port on switch for user device,network_port_enable,standard,Sales,False,True,2025-03-14T00:00:00Z
+INC-10054,new server needs network port configured in datacenter!!,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Engineering,True,True,2025-10-02T00:00:00Z
+INC-10055,calendar showing wrong timezone after international travel!!,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Engineering,True,True,2025-08-22T00:00:00Z
+INC-10056,meeting invites not showing in calendar need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Legal,True,True,2025-02-07T00:00:00Z
+INC-10057,slow dns lookup affecting all applications,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Finance,True,True,2026-01-28T00:00:00Z
+INC-10058,stapling option missing from printer settings after driver update,Printer Issues,P4,Reinstall or update printer driver,printer_driver_install,standard,IT,True,True,2025-11-15T00:00:00Z
+INC-10059,SAP GUI crashes immediately on launch,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Procurement,True,True,2025-12-02T00:00:00Z
+INC-10060,laptop wifi not detecting 5ghz band after driver update this is urgent,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Finance,True,True,2025-07-21T00:00:00Z
+INC-10061,getting invalid credentials error even with correct password,Auth/SSO,P3,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,HR,False,True,2025-04-14T00:00:00Z
+INC-10062,two step verification sending codes to old number please help asap,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Finance,True,True,2025-02-08T00:00:00Z
+INC-10063,passwrd expired plz reset asap,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Engineering,True,True,2026-01-18T00:00:00Z
+INC-10064,new mac laptop vpn client not compatible,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Procurement,True,True,2025-09-12T00:00:00Z
+INC-10065,getting certificate not trusted error on vpn,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Sales,True,True,2025-05-04T00:00:00Z
+INC-10066,urgent - account locked third time this week,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Engineering,True,True,2025-09-15T00:00:00Z
+INC-10067,cant access any websites but internal systems work need this fixed today,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Logistics,True,True,2025-08-26T00:00:00Z
+INC-10068,pdf printing distorted text scrambled,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,HR,True,True,2025-11-12T00:00:00Z
+INC-10069,duplex printing not working on shared printer need this fixed today please help asap,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Operations,True,True,2025-10-05T00:00:00Z
+INC-10070,"Hi team, cant login after returning from maternity leave",Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Legal,True,True,2025-06-22T00:00:00Z
+INC-10071,printer shows ready but nothing comes out please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Marketing,False,False,2025-03-30T00:00:00Z
+INC-10072,out of office not turning off after disabling,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,True,True,2025-09-26T00:00:00Z
+INC-10073,network printer IP changed now no one can print,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Logistics,True,True,2025-06-27T00:00:00Z
+INC-10074,"Hi team, account disabled by IT need access back",Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Procurement,True,True,2025-03-11T00:00:00Z
+INC-10075,urgent - wrong cost centre showing in SAP user profile,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Finance,True,True,2025-01-30T00:00:00Z
+INC-10076,sap passwrd reset pls urgent,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Sales,True,True,2025-07-14T00:00:00Z
+INC-10077,SAP background jobs stuck in queued state need this fixed today,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Procurement,True,True,2025-09-10T00:00:00Z
+INC-10078,new software request not in software center,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Sales,True,True,2026-01-08T00:00:00Z
+INC-10079,Managing Director mailbox full before international travel,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,vip,Finance,False,True,2025-12-12T00:00:00Z
+INC-10080,"Hi team, network authentication failing for wired connection",Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Sales,True,True,2025-12-19T00:00:00Z
+INC-10081,cant access SAP purchasing module need this fixed today,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Operations,True,True,2025-12-22T00:00:00Z
+INC-10082,SAP credential reset not working via self service need this fixed today,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Legal,True,True,2025-06-26T00:00:00Z
+INC-10083,outlook not opening crashes on startup this is urgent,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Legal,True,True,2025-04-07T00:00:00Z
+INC-10084,getting ABAP dump error in SAP when running report,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Engineering,False,False,2025-10-03T00:00:00Z
+INC-10085,SAP slow since morning whole floor affected this is urgent,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Operations,False,True,2025-09-20T00:00:00Z
+INC-10086,print jobs stuck in queue nothing printing please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2025-03-11T00:00:00Z
+INC-10087,shared calendar permissions removed after AD change,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Procurement,False,True,2025-02-06T00:00:00Z
+INC-10088,vpn says maximum connections reached need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Logistics,True,True,2025-12-22T00:00:00Z
+INC-10089,email archive not accessible after migration to new server,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Procurement,True,True,2025-11-22T00:00:00Z
+INC-10090,account locked after wrong password attempts need this fixed today!!,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,HR,True,True,2025-11-16T00:00:00Z
+INC-10091,google authenticator codes rejected by system!!,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,HR,True,True,2025-04-03T00:00:00Z
+INC-10092,printer spooler service keeps crashing need this fixed today please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,IT,True,True,2025-06-05T00:00:00Z
+INC-10093,office 365 apps showing unlicensed product need this fixed today,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Logistics,True,True,2025-12-07T00:00:00Z
+INC-10094,mass software rollout failing on 200 machines company wide,Software Install,P1,Run installer with elevated admin privileges,software_admin_install,standard,Sales,False,True,2025-07-31T00:00:00Z
+INC-10095,urgent - network performance degraded after switch replacement,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,HR,False,False,2025-10-24T00:00:00Z
+INC-10096,CIO vpn certificate expired cannot connect remotely,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,vip,Sales,False,True,2025-02-17T00:00:00Z
+INC-10097,urgent - SAP running extremely slow taking 5 minutes to load,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Operations,False,False,2025-11-14T00:00:00Z
+INC-10098,urgent - batch job in SAP failed overnight needs investigation,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,HR,False,True,2025-02-04T00:00:00Z
+INC-10099,data centre network switch failed entire rack offline,Network/Connectivity,P1,Enable network port on switch for user device,network_port_enable,standard,Sales,False,True,2025-09-30T00:00:00Z
+INC-10100,dhcp not assigning ip address to new machine need this fixed today,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,IT,True,True,2025-11-23T00:00:00Z
+INC-10101,my session expires immediately after login,Auth/SSO,P3,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,Engineering,False,False,2025-02-09T00:00:00Z
+INC-10102,zoom not working after antivirus update blocked it need this fixed today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,HR,True,True,2025-01-08T00:00:00Z
+INC-10103,new printer not showing up in add printer wizard need this fixed today!!,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Marketing,True,True,2025-07-05T00:00:00Z
+INC-10104,"Hi team, SAP completely unresponsive since 9am",SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Engineering,True,True,2025-09-03T00:00:00Z
+INC-10105,entire office cant print since this morning,Printer Issues,P2,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Legal,False,True,2025-08-26T00:00:00Z
+INC-10106,account got disabled need it re-enabled urgently this is urgent,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Legal,True,True,2025-03-05T00:00:00Z
+INC-10107,teams desktop app not installing on windows 11 need this fixed today,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Legal,True,True,2025-12-13T00:00:00Z
+INC-10108,urgent - vpn hangs on connecting screen indefinitely,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Operations,False,True,2025-06-25T00:00:00Z
+INC-10109,cant send emails getting error 550,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,IT,True,True,2025-03-30T00:00:00Z
+INC-10110,zoom not working after antivirus update blocked it,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Procurement,True,True,2026-01-15T00:00:00Z
+INC-10111,SVP Finance SAP locked out during audit week,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,vip,Legal,False,True,2025-09-30T00:00:00Z
+INC-10112,cant access HR system after department transfer please help asap,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Legal,True,True,2025-02-27T00:00:00Z
+INC-10113,vpn client not starting on windows 11 after upgrade,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,HR,True,True,2025-01-18T00:00:00Z
+INC-10114,VP Procurement missing SAP roles cannot raise purchase orders,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,vip,Finance,False,True,2025-04-07T00:00:00Z
+INC-10115,local network fine but cloud services unreachable need this fixed today,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Engineering,True,True,2025-04-23T00:00:00Z
+INC-10116,admin rights revoked cant do basic IT tasks,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Legal,True,True,2025-07-04T00:00:00Z
+INC-10117,printer driver missing after laptop refresh,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Procurement,True,True,2026-01-07T00:00:00Z
+INC-10118,SAP login not working since morning need this fixed today,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Operations,True,True,2025-08-04T00:00:00Z
+INC-10119,onedrive sync blocked by policy on this machine need this fixed today,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Procurement,True,True,2025-03-31T00:00:00Z
+INC-10120,enterprise app not available in company portal for my device,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Procurement,True,True,2025-02-06T00:00:00Z
+INC-10121,vpn root certificate not trusted on new device,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Marketing,True,True,2025-12-10T00:00:00Z
+INC-10122,a3 printing defaulting to a4 size incorrect this is urgent,Printer Issues,P4,Reinstall or update printer driver,printer_driver_install,standard,Marketing,True,True,2025-05-27T00:00:00Z
+INC-10123,"Hi team, outlook very slow takes forever to search emails",Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Engineering,True,True,2025-07-01T00:00:00Z
+INC-10124,printer printing blank pages,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,HR,True,True,2025-03-17T00:00:00Z
+INC-10125,cannot change expired password from vpn login screen,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Legal,True,True,2025-08-20T00:00:00Z
+INC-10126,password expired cannot login to laptop need this fixed today,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Sales,True,True,2025-03-10T00:00:00Z
+INC-10127,some websites blocked incorrectly by firewall this is urgent,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Finance,True,True,2026-01-09T00:00:00Z
+INC-10128,vpn logs showing tls handshake failure,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Procurement,True,True,2025-02-28T00:00:00Z
+INC-10129,my credentials work on phone but not on laptop,Auth/SSO,P3,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,IT,False,True,2025-12-13T00:00:00Z
+INC-10130,new ip phone not getting network connectivity,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Operations,True,True,2025-10-19T00:00:00Z
+INC-10131,no access to SAP module after role change please help asap,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Engineering,True,True,2025-09-19T00:00:00Z
+INC-10132,new team member needs same access as colleague this is urgent,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Operations,True,True,2026-01-13T00:00:00Z
+INC-10133,network adapter not detected after driver update need this fixed today this is urgent,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Procurement,True,True,2025-06-22T00:00:00Z
+INC-10134,"Hi team, access request submitted weeks ago still pending approval",Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Finance,True,True,2025-02-25T00:00:00Z
+INC-10135,CEO MFA broken after new phone urgent board call tonight,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,vip,Legal,False,True,2025-09-03T00:00:00Z
+INC-10136,"Hi team, SAP interface jobs failing since yesterday midnight need this fixed today",SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Sales,True,True,2025-04-07T00:00:00Z
+INC-10137,removed from security group by mistake lost access,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Marketing,True,True,2025-07-01T00:00:00Z
+INC-10138,vpn drops when switching between wifi networks this is urgent,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Sales,False,True,2025-12-09T00:00:00Z
+INC-10139,vpn license expired for our team this is urgent,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Sales,True,True,2025-01-26T00:00:00Z
+INC-10140,network share mounting at login is failing please help asap,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Finance,True,True,2025-06-27T00:00:00Z
+INC-10141,printer shows offline even though its on!!,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Logistics,True,True,2025-08-06T00:00:00Z
+INC-10142,"Hi team, application wont uninstall stuck in programs list",Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Marketing,True,True,2025-11-07T00:00:00Z
+INC-10143,new laptop cant setup outlook profile error need this fixed today please help asap,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Procurement,True,True,2025-10-29T00:00:00Z
+INC-10144,citrix workspace not launching applications,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Marketing,True,True,2025-05-11T00:00:00Z
+INC-10145,browser keeps reverting to older version after update,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Operations,True,True,2025-06-25T00:00:00Z
+INC-10146,new starter account not activated on joining date,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Engineering,True,True,2025-12-10T00:00:00Z
+INC-10147,user promoted needs manager level system access now please help asap,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Legal,True,True,2025-09-28T00:00:00Z
+INC-10148,cant install vpn client on new laptop need this fixed today,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Finance,True,True,2025-01-15T00:00:00Z
+INC-10149,network driver rollback needed after bad update,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Procurement,True,True,2025-12-01T00:00:00Z
+INC-10150,"Hi team, product key invalid for microsoft software on new machine",Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Procurement,True,True,2025-09-14T00:00:00Z
+INC-10151,missing dll error when launching business application please help asap,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Procurement,True,True,2025-03-26T00:00:00Z
+INC-10152,vpn profile disappeared after reimaging laptop need this fixed today please help asap,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,HR,True,True,2025-11-27T00:00:00Z
+INC-10153,forgot password secret questions not working,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Finance,True,True,2025-03-09T00:00:00Z
+INC-10154,"Hi team, software needs specific port opened for activation",Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Procurement,True,True,2026-01-24T00:00:00Z
+INC-10155,network port on patch panel not labelled correctly,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Legal,True,True,2025-04-21T00:00:00Z
+INC-10156,new employee outlook not provisioned after onboarding this is urgent,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Procurement,True,True,2025-12-06T00:00:00Z
+INC-10157,account inactive after extended leave need reactivation,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Legal,True,True,2025-03-31T00:00:00Z
+INC-10158,mailbox full cannot receive new emails need this fixed today this is urgent,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,HR,True,True,2025-10-14T00:00:00Z
+INC-10159,printer recently moved to new location now not found this is urgent,Printer Issues,P4,Re-map network printer and verify IP address,printer_network_map,standard,Procurement,True,True,2025-01-12T00:00:00Z
+INC-10160,cant activate windows on new laptop,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Procurement,True,True,2025-03-10T00:00:00Z
+INC-10161,SAP PM module access required for maintenance engineer,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Engineering,True,True,2025-02-07T00:00:00Z
+INC-10162,CFO outlook not working cannot access email,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,vip,Legal,False,True,2025-04-05T00:00:00Z
+INC-10163,"Hi team, adobe acrobat crashes with different errors each time",Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Engineering,False,False,2025-10-15T00:00:00Z
+INC-10164,need access to project folder for new team member this is urgent,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Finance,True,True,2025-03-31T00:00:00Z
+INC-10165,new software request not in software center need this fixed today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Engineering,True,True,2025-11-24T00:00:00Z
+INC-10166,SAP background jobs stuck in queued state!!,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Sales,True,True,2025-08-24T00:00:00Z
+INC-10167,urgent - lost authenticator app access,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Procurement,True,True,2025-02-12T00:00:00Z
+INC-10168,VP Sales account locked before quarterly business review,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,vip,Legal,False,True,2025-11-29T00:00:00Z
+INC-10169,vpn token generator hardware device stopped working,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Logistics,True,True,2025-12-23T00:00:00Z
+INC-10170,colour printer printing in black and white only need this fixed today,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Legal,True,True,2025-08-23T00:00:00Z
+INC-10171,print queue stuck all jobs pending please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2025-12-28T00:00:00Z
+INC-10172,"Hi team, gpo preventing remote desktop to my own workstation need this fixed today",Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Engineering,True,True,2025-08-29T00:00:00Z
+INC-10173,SAP screen goes blank after 5 minutes idle please help asap,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,HR,True,True,2025-10-27T00:00:00Z
+INC-10174,"Hi team, voip phone not registering likely network port issue",Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Logistics,True,True,2025-11-26T00:00:00Z
+INC-10175,vpn not connecting says authentication failed,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Engineering,True,True,2025-12-18T00:00:00Z
+INC-10176,"Hi team, vpn setup required for new contractor starting this week",VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,contractor,Finance,True,True,2025-01-30T00:00:00Z
+INC-10177,network switch port needs enabling for new pc,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Sales,True,True,2025-07-17T00:00:00Z
+INC-10178,urgent - contacts not syncing between phone and outlook,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Sales,True,True,2025-10-08T00:00:00Z
+INC-10179,cannot delete stuck print jobs queue frozen need this fixed today,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Finance,True,True,2026-01-19T00:00:00Z
+INC-10180,urgent - missing SAP roles after system migration need this fixed today,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Logistics,True,True,2026-01-29T00:00:00Z
+INC-10181,cannot login to SAP invalid credentials please help asap,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,HR,True,True,2025-12-19T00:00:00Z
+INC-10182,screen lock policy too aggressive locks every 2 mins,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,HR,True,True,2025-02-05T00:00:00Z
+INC-10183,browser extension needed for internal app not installing need this fixed today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Sales,True,True,2025-10-19T00:00:00Z
+INC-10184,spam filter blocking internal emails from finance,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,IT,True,True,2025-07-22T00:00:00Z
+INC-10185,software restriction policy blocking approved app!!,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,IT,True,True,2025-06-11T00:00:00Z
+INC-10186,browser extension needed for internal app not installing,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Finance,True,True,2025-06-04T00:00:00Z
+INC-10187,whole remote team cannot connect to vpn since 8am,VPN Problems,P2,Push updated VPN configuration to user device,vpn_config_push,standard,Operations,False,True,2025-05-10T00:00:00Z
+INC-10188,urgent - temp contractor needs system access for project need this fixed today,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Sales,True,True,2025-06-12T00:00:00Z
+INC-10189,new joiner cannot login on first day,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Legal,True,True,2025-04-15T00:00:00Z
+INC-10190,power bi desktop not opening after update need this fixed today,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Engineering,True,True,2025-09-28T00:00:00Z
+INC-10191,license count exceeded new users cant activate,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Engineering,True,True,2025-05-28T00:00:00Z
+INC-10192,SAP interface jobs failing since yesterday midnight please help asap,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Engineering,True,True,2025-08-13T00:00:00Z
+INC-10193,microsoft authenticator asking for setup again after IT rebuild!!,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Engineering,True,True,2025-08-14T00:00:00Z
+INC-10194,cant access any websites but internal systems work,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Logistics,True,True,2025-11-02T00:00:00Z
+INC-10195,urgent - intermittent network sometimes works sometimes doesnt,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Legal,False,False,2025-12-07T00:00:00Z
+INC-10196,cant map network drive access denied need this fixed today,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,HR,True,True,2025-02-11T00:00:00Z
+INC-10197,SAP account locked after failed logins please help asap,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,HR,True,True,2025-09-15T00:00:00Z
+INC-10198,acces denied to share drive plz give permissions need this fixed today this is urgent,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Sales,True,True,2025-05-06T00:00:00Z
+INC-10199,user account not found in new domain after company merger,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Marketing,True,True,2025-07-28T00:00:00Z
+INC-10200,user account not synced from HR to AD need this fixed today please help asap,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Sales,True,True,2025-12-01T00:00:00Z
+INC-10201,vpn error 812 authentication rejected by gateway,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Sales,True,True,2025-09-06T00:00:00Z
+INC-10202,email stuck in outbox not sending need this fixed today,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,IT,True,True,2025-11-28T00:00:00Z
+INC-10203,acces denied to share drive plz give permissions,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,HR,True,True,2025-06-26T00:00:00Z
+INC-10204,bitlocker policy forcing encryption need exemption,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Logistics,True,True,2025-08-28T00:00:00Z
+INC-10205,SAP session keeps timing out every few minutes please help asap,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Logistics,False,False,2025-09-23T00:00:00Z
+INC-10206,wifi keeps disconnecting every few minutes,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Sales,True,True,2025-09-22T00:00:00Z
+INC-10207,vpn profile type changed after group policy update this is urgent,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Procurement,True,True,2025-11-10T00:00:00Z
+INC-10208,network cable connected but showing no network,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Sales,True,True,2025-09-14T00:00:00Z
+INC-10209,printer error 0x00000709 when setting as default need this fixed today,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Procurement,True,True,2025-12-23T00:00:00Z
+INC-10210,vpn config file corrupt after system restore please help asap,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Marketing,True,True,2025-11-15T00:00:00Z
+INC-10211,vpn requiring reauth every hour too frequent!!,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Logistics,False,True,2026-01-10T00:00:00Z
+INC-10212,SAP application server overloaded users getting kicked out,SAP Issues,P2,Restart SAP application service and clear job queue,sap_service_restart,standard,Procurement,False,True,2025-12-22T00:00:00Z
+INC-10213,wired connection slower than expected after gigabit upgrade,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Legal,True,True,2025-05-08T00:00:00Z
+INC-10214,vpn client not starting on windows 11 after upgrade need this fixed today this is urgent,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Logistics,True,True,2025-02-22T00:00:00Z
+INC-10215,sharepoint sync client stuck on processing changes,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,IT,True,True,2025-01-08T00:00:00Z
+INC-10216,outlook profile corrupted need to rebuild,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Procurement,True,True,2025-03-25T00:00:00Z
+INC-10217,excel crashing when opening large files after update please help asap,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Engineering,True,True,2025-09-20T00:00:00Z
+INC-10218,urgent - SAP fiori launchpad not loading after browser update,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Procurement,True,True,2025-07-31T00:00:00Z
+INC-10219,whole team locked out of accounts after AD sync issue,Auth/SSO,P1,Unlock user account in Active Directory,account_unlock,standard,HR,False,True,2025-02-05T00:00:00Z
+INC-10220,email forwarding rule sending to wrong address need this fixed today this is urgent,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Legal,True,True,2025-03-09T00:00:00Z
+INC-10221,inherited permissions causing access issues on subfolder need this fixed today,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Finance,True,True,2025-03-21T00:00:00Z
+INC-10222,emails going to sent folder but recipients not receiving,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,False,True,2025-09-28T00:00:00Z
+INC-10223,moved to new desk no network connection port not active,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,IT,True,True,2025-03-21T00:00:00Z
+INC-10224,inbox rules disappeared after outlook update,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Logistics,True,True,2025-02-16T00:00:00Z
+INC-10225,teams calls keep dropping network unstable,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Legal,True,True,2025-05-25T00:00:00Z
+INC-10226,new printer not showing up in add printer wizard,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,HR,True,True,2025-10-01T00:00:00Z
+INC-10227,urgent - authorisation object missing for ME21N transaction,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Logistics,True,True,2025-06-01T00:00:00Z
+INC-10228,vpn gateway unreachable error since morning need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Legal,True,True,2025-04-09T00:00:00Z
+INC-10229,Head of HR account locked need immediate access,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,vip,Legal,False,True,2025-06-02T00:00:00Z
+INC-10230,new employee outlook not provisioned after onboarding need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Legal,True,True,2025-05-19T00:00:00Z
+INC-10231,service account password expired causing application failure,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Sales,True,True,2026-01-01T00:00:00Z
+INC-10232,whole department lost folder access after server patching,Permissions/Access,P2,Grant folder/share access permissions in AD,permission_folder,standard,IT,False,True,2025-01-24T00:00:00Z
+INC-10233,internet extremely slow cant load any pages,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Engineering,True,True,2025-08-21T00:00:00Z
+INC-10234,CEO presentation software license expired urgent,Software Install,P3,Assign or reactivate software license for user,software_license_assign,vip,Legal,False,True,2025-03-29T00:00:00Z
+INC-10235,software license expired need renewal!!,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Legal,True,True,2025-07-10T00:00:00Z
+INC-10236,missing authorisation for VL02N delivery transaction,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Procurement,True,True,2025-05-09T00:00:00Z
+INC-10237,SSO certificate expired causing all login failures across company,Auth/SSO,P2,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,Procurement,False,True,2025-10-28T00:00:00Z
+INC-10238,python not found in PATH after installation,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Engineering,True,True,2025-12-21T00:00:00Z
+INC-10239,outlook calendar not syncing with teams meetings,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,IT,False,False,2026-01-25T00:00:00Z
+INC-10240,dhcp not assigning ip address to new machine please help asap,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Operations,True,True,2025-06-23T00:00:00Z
+INC-10241,urgent - cant send emails larger than 5mb limit too low,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Engineering,True,True,2025-06-24T00:00:00Z
+INC-10242,colour laser printer switched to greyscale mode unexpectedly this is urgent,Printer Issues,P4,Reinstall or update printer driver,printer_driver_install,standard,Sales,True,True,2025-11-25T00:00:00Z
+INC-10243,vpn certificate expired cannot connect to office network need this fixed today,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Engineering,True,True,2025-09-01T00:00:00Z
+INC-10244,local network fine but cloud services unreachable!!,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Finance,True,True,2025-02-27T00:00:00Z
+INC-10245,SAP session keeps timing out need credentials refreshed,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Logistics,True,True,2025-07-21T00:00:00Z
+INC-10246,"Hi team, password expired cannot login to laptop",Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Legal,True,True,2025-04-13T00:00:00Z
+INC-10247,adobe acrobat crashes immediately after install this is urgent,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Engineering,True,True,2025-12-20T00:00:00Z
+INC-10248,urgent - vpn cert expired need renew urgent need this fixed today,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Procurement,True,True,2025-09-11T00:00:00Z
+INC-10249,"Hi team, network cable connected but showing no network need this fixed today",Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Procurement,True,True,2026-01-31T00:00:00Z
+INC-10250,"Hi team, USB ports blocked by policy need exception",Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Finance,True,True,2025-02-06T00:00:00Z
+INC-10251,laptop wifi not detecting 5ghz band,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Finance,True,True,2025-05-11T00:00:00Z
+INC-10252,all emails disappeared from inbox after migration,Email Access,P2,Rebuild or repair Outlook profile,email_profile_repair,standard,HR,False,True,2025-11-14T00:00:00Z
+INC-10253,urgent - outlook addin crashing application on every startup,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Finance,True,True,2025-08-17T00:00:00Z
+INC-10254,printer not connecting after network change need this fixed today this is urgent,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Legal,True,True,2025-04-12T00:00:00Z
+INC-10255,"Hi team, network share not accessible from this machine only",Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Legal,True,True,2025-07-19T00:00:00Z
+INC-10256,VP of Sales vpn certificate expired working from home,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,vip,Logistics,False,True,2025-03-17T00:00:00Z
+INC-10257,vpn connects but very slow cannot work from home need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Marketing,True,True,2025-09-11T00:00:00Z
+INC-10258,teams desktop app not installing on windows 11 this is urgent,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Logistics,True,True,2025-07-10T00:00:00Z
+INC-10259,SAP HR module blocked for entire HR team since upgrade,SAP Issues,P2,Reassign or repair SAP user role permissions,sap_role_assign,standard,Legal,False,True,2025-10-29T00:00:00Z
+INC-10260,accidental deletion of security group broke access for 10 users,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Engineering,False,True,2025-10-29T00:00:00Z
+INC-10261,vpn two factor prompt not appearing need this fixed today,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Legal,True,True,2025-02-01T00:00:00Z
+INC-10262,shared printer not visible to new users,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Finance,True,True,2025-11-07T00:00:00Z
+INC-10263,email forwarding rule sending to wrong address,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,HR,True,True,2025-03-26T00:00:00Z
+INC-10264,"Hi team, cant access shared mailbox after permissions change need this fixed today",Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,True,True,2025-01-02T00:00:00Z
+INC-10265,password change prompt loops without accepting new password please help asap,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Sales,True,True,2026-01-17T00:00:00Z
+INC-10266,software crashes with out of memory error!!,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,HR,False,False,2025-02-23T00:00:00Z
+INC-10267,missing authorisation for VL02N delivery transaction need this fixed today,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Logistics,True,True,2025-12-25T00:00:00Z
+INC-10268,emails automatically moving to deleted folder,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,True,True,2025-04-03T00:00:00Z
+INC-10269,screen lock policy too aggressive locks every 2 mins need this fixed today please help asap,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Procurement,True,True,2025-07-11T00:00:00Z
+INC-10270,microsoft project license not assigned after role change this is urgent,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Finance,True,True,2025-09-09T00:00:00Z
+INC-10271,gpo change broke remote access for specific team this is urgent,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Finance,True,True,2025-06-12T00:00:00Z
+INC-10272,"Hi team, password reset email not arriving need this fixed today",Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,HR,True,True,2025-08-06T00:00:00Z
+INC-10273,cant access shared mailbox after permissions change,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Marketing,True,True,2025-04-04T00:00:00Z
+INC-10274,cant install vpn client on new laptop this is urgent,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Legal,True,True,2025-05-06T00:00:00Z
+INC-10275,urgent - login page keeps spinning never loads after SSO redirect,Auth/SSO,P3,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,Marketing,False,True,2025-05-04T00:00:00Z
+INC-10276,license server unreachable for engineering software please help asap,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Marketing,True,True,2025-07-28T00:00:00Z
+INC-10277,gpo preventing remote desktop to my own workstation,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Operations,True,True,2025-07-17T00:00:00Z
+INC-10278,no internet access at my desk since morning,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Logistics,True,True,2025-01-25T00:00:00Z
+INC-10279,inbox rules disappeared after outlook update need this fixed today,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Sales,True,True,2026-01-11T00:00:00Z
+INC-10280,important emails being marked as junk incorrectly,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Logistics,True,True,2025-12-13T00:00:00Z
+INC-10281,software update failed application now broken need this fixed today,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Procurement,True,True,2025-10-18T00:00:00Z
+INC-10282,"Hi team, getting certificate not trusted error on vpn need this fixed today",VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Legal,True,True,2025-09-26T00:00:00Z
+INC-10283,outlook not opening crashes on startup need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Engineering,True,True,2025-09-12T00:00:00Z
+INC-10284,vpn client update pushed by IT broke connections for 30 users,VPN Problems,P2,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,HR,False,True,2025-10-27T00:00:00Z
+INC-10285,laptop wifi not detecting 5ghz band need this fixed today,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Procurement,True,True,2025-02-25T00:00:00Z
+INC-10286,account disabled by IT need access back need this fixed today,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Finance,True,True,2025-11-24T00:00:00Z
+INC-10287,password reset email not arriving,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,HR,True,True,2025-01-12T00:00:00Z
+INC-10288,vpn profile disappeared after reimaging laptop,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Sales,True,True,2025-04-24T00:00:00Z
+INC-10289,print jobs disappearing without printing need this fixed today,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Procurement,True,True,2025-09-19T00:00:00Z
+INC-10290,software license tied to old machine need transfer!!,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,IT,True,True,2025-03-07T00:00:00Z
+INC-10291,vpn disconnects every 30 minutes,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Operations,True,True,2025-12-07T00:00:00Z
+INC-10292,account flagged for suspicious activity now locked need help,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Marketing,True,True,2025-10-02T00:00:00Z
+INC-10293,CTO cannot login to SAP for month end review,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,vip,IT,False,True,2025-08-12T00:00:00Z
+INC-10294,security group membership not replicating across sites please help asap,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,IT,True,True,2025-01-20T00:00:00Z
+INC-10295,no internet access at my workstation plz help need this fixed today,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,HR,True,True,2025-11-19T00:00:00Z
+INC-10296,microsoft project license not assigned after role change need this fixed today,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Operations,True,True,2025-06-04T00:00:00Z
+INC-10297,new phone cant set up microsoft authenticator need this fixed today,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Procurement,True,True,2025-12-22T00:00:00Z
+INC-10298,vpn says maximum connections reached,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Legal,True,True,2026-01-22T00:00:00Z
+INC-10299,new laptop cant setup outlook profile error,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Engineering,True,True,2026-02-01T00:00:00Z
+INC-10300,application install blocked by applocker policy!!,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Operations,True,True,2025-05-28T00:00:00Z
+INC-10301,AD account showing as expired!!,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Sales,True,True,2025-11-07T00:00:00Z
+INC-10302,wireless network adapter disabled after sleep mode,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Marketing,True,True,2025-01-09T00:00:00Z
+INC-10303,all emails disappeared from inbox after migration,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Logistics,True,True,2025-02-11T00:00:00Z
+INC-10304,print queue shows 200 stuck jobs from last night need this fixed today,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Marketing,True,True,2025-11-03T00:00:00Z
+INC-10305,reply all storm distribution list sending to wrong group,Email Access,P2,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Procurement,False,True,2025-12-23T00:00:00Z
+INC-10306,urgent - vpn root certificate not trusted on new device need this fixed today,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,IT,True,True,2025-06-01T00:00:00Z
+INC-10307,file permissions reset after server patching need this fixed today please help asap,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Operations,True,True,2026-01-12T00:00:00Z
+INC-10308,cant install printer says access denied need this fixed today,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Sales,True,True,2025-06-02T00:00:00Z
+INC-10309,"Hi team, SAP logon showing user already logged in from another session",SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Sales,True,True,2025-10-17T00:00:00Z
+INC-10310,SSO keeps logging me out every 10 minutes from all apps,Auth/SSO,P3,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,HR,False,True,2025-03-25T00:00:00Z
+INC-10311,CFO missing SAP authorisation for quarter close,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,vip,HR,False,True,2025-02-12T00:00:00Z
+INC-10312,network adapter not detected after driver update,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Operations,True,True,2025-05-16T00:00:00Z
+INC-10313,missing dll error when launching business application need this fixed today!!,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Operations,True,True,2025-08-26T00:00:00Z
+INC-10314,prntr offline plz fix,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,IT,True,True,2025-06-18T00:00:00Z
+INC-10315,gpo applying wrong settings to laptop in wrong ou,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Legal,False,False,2025-05-11T00:00:00Z
+INC-10316,authorisation object missing for ME21N transaction need this fixed today,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Legal,True,True,2025-07-24T00:00:00Z
+INC-10317,contacts not syncing between phone and outlook need this fixed today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Marketing,True,True,2026-01-14T00:00:00Z
+INC-10318,SAP account locked after failed logins need this fixed today this is urgent,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Operations,True,True,2025-10-01T00:00:00Z
+INC-10319,need access to project folder for new team member need this fixed today this is urgent,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Logistics,True,True,2025-06-23T00:00:00Z
+INC-10320,printer shows completed but nothing actually printed,Printer Issues,P4,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Finance,True,True,2025-03-20T00:00:00Z
+INC-10321,new employee mailbox not large enough for business needs,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Marketing,True,True,2025-11-26T00:00:00Z
+INC-10322,vpn mfa push notification not arriving on phone,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Operations,True,True,2025-07-20T00:00:00Z
+INC-10323,vpn client ui not loading just shows blank window,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Procurement,True,True,2025-06-16T00:00:00Z
+INC-10324,vpn connected but remote desktop keeps timing out,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-03-29T00:00:00Z
+INC-10325,software update breaking integration with another tool!!,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Logistics,False,True,2025-10-02T00:00:00Z
+INC-10326,cant install software says requires admin rights,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,IT,True,True,2025-01-20T00:00:00Z
+INC-10327,account locked after wrong password attempts,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Marketing,True,True,2026-01-09T00:00:00Z
+INC-10328,SAP user id deactivated need reactivation please,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Legal,True,True,2025-10-21T00:00:00Z
+INC-10329,CFO outlook calendar not showing meetings for today,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,vip,Sales,False,True,2025-02-08T00:00:00Z
+INC-10330,printer randomly cancelling jobs mid print need this fixed today,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Marketing,True,True,2025-09-14T00:00:00Z
+INC-10331,inherited permissions causing access issues on subfolder,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Engineering,True,True,2025-12-30T00:00:00Z
+INC-10332,vpn works on wifi but not on mobile data!!,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-05-27T00:00:00Z
+INC-10333,application compatibility error on windows 11,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Engineering,False,False,2026-01-25T00:00:00Z
+INC-10334,"Hi team, office 365 apps showing unlicensed product",Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Procurement,True,True,2025-10-31T00:00:00Z
+INC-10335,temp contractor needs system access for project,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,IT,True,True,2025-04-01T00:00:00Z
+INC-10336,SAP fiori launchpad not loading after browser update need this fixed today,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Logistics,True,True,2025-01-25T00:00:00Z
+INC-10337,"Hi team, antivirus blocking legitimate business application",Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Engineering,True,True,2025-03-06T00:00:00Z
+INC-10338,smart card login failing after card replacement!!,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Marketing,True,True,2025-01-06T00:00:00Z
+INC-10339,two factor auth broken after phone upgrade need this fixed today,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Marketing,True,True,2025-10-13T00:00:00Z
+INC-10340,conditional access policy blocking login from home office please help asap,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Operations,True,True,2025-12-12T00:00:00Z
+INC-10341,"Hi team, password reset link expired before i could use it",Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Legal,True,True,2025-08-01T00:00:00Z
+INC-10342,email categorisation colours disappeared after update,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Logistics,True,True,2025-03-14T00:00:00Z
+INC-10343,pin login stopped working on windows hello,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Procurement,True,True,2025-04-06T00:00:00Z
+INC-10344,microsoft office not activating license error,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Legal,True,True,2025-08-08T00:00:00Z
+INC-10345,vpn connection drops during video calls please help asap,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Operations,True,True,2026-01-16T00:00:00Z
+INC-10346,vpn client showing outdated version blocks connection,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Legal,True,True,2025-02-28T00:00:00Z
+INC-10347,cant instal app says admin rights required,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Finance,True,True,2025-08-19T00:00:00Z
+INC-10348,cant find network printer after moving to new floor!!,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Sales,True,True,2025-04-17T00:00:00Z
+INC-10349,"Hi team, SAP logon pad not connecting to correct server",SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Finance,True,True,2025-02-27T00:00:00Z
+INC-10350,vpn two factor prompt not appearing,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,HR,True,True,2025-11-18T00:00:00Z
+INC-10351,group policy update removed local admin rights from devs need this fixed today,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Sales,True,True,2025-01-23T00:00:00Z
+INC-10352,temp password not accepted for first login,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,HR,True,True,2025-03-02T00:00:00Z
+INC-10353,"Hi team, secure print jobs not releasing at device with pin need this fixed today",Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2025-10-21T00:00:00Z
+INC-10354,vpn certificate expired cannot connect to office network,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Legal,True,True,2025-11-10T00:00:00Z
+INC-10355,cant open attachments in outlook says file corrupted please help asap,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Finance,False,False,2025-07-17T00:00:00Z
+INC-10356,urgent - print spooler crashing on this specific workstation,Printer Issues,P4,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,IT,True,True,2025-12-23T00:00:00Z
+INC-10357,vpn works on wifi but not on mobile data need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-10-30T00:00:00Z
+INC-10358,vpn connects but very slow cannot work from home please help asap,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-07-16T00:00:00Z
+INC-10359,SAP completely down for entire procurement team since 8am,SAP Issues,P1,Restart SAP application service and clear job queue,sap_service_restart,standard,Sales,False,True,2025-09-16T00:00:00Z
+INC-10360,cant install printer says access denied,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,HR,True,True,2025-01-03T00:00:00Z
+INC-10361,biometric login stopped working after windows update!!,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Operations,True,True,2025-02-05T00:00:00Z
+INC-10362,urgent - emails delayed by several hours before delivery,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Sales,False,False,2025-07-04T00:00:00Z
+INC-10363,printer driver incompatible with windows 11 please help asap,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Engineering,True,True,2025-10-12T00:00:00Z
+INC-10364,"Hi team, software restriction policy blocking approved app",Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,IT,True,True,2025-10-20T00:00:00Z
+INC-10365,entire dev team lost access to production readonly view,Permissions/Access,P2,Assign correct role or group membership in AD,permission_role_assign,standard,Engineering,False,True,2025-08-18T00:00:00Z
+INC-10366,network switch port needs enabling for new pc need this fixed today,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Legal,True,True,2025-04-28T00:00:00Z
+INC-10367,all overseas staff cannot connect to vpn since last night,VPN Problems,P1,Renew or reinstall VPN certificate,vpn_cert_renew,standard,IT,False,True,2026-01-10T00:00:00Z
+INC-10368,bulk emails to department failing with quota error,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,Logistics,True,True,2025-11-08T00:00:00Z
+INC-10369,board member cannot access laptop before important presentation,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,vip,Operations,False,True,2025-12-14T00:00:00Z
+INC-10370,network driver rollback needed after bad update need this fixed today,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Operations,True,True,2025-01-08T00:00:00Z
+INC-10371,urgent - outlook search not finding emails from last month,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,Logistics,True,True,2025-09-03T00:00:00Z
+INC-10372,network printer needs to be added to new department!!,Printer Issues,P4,Re-map network printer and verify IP address,printer_network_map,standard,IT,True,True,2025-06-07T00:00:00Z
+INC-10373,two factor auth broken after phone upgrade!!,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,HR,True,True,2025-08-29T00:00:00Z
+INC-10374,domain account inactive after 90 days need this fixed today,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Sales,True,True,2025-05-12T00:00:00Z
+INC-10375,print queue stuck all jobs pending need this fixed today please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2026-01-20T00:00:00Z
+INC-10376,"Hi team, colour printer printing in black and white only",Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Logistics,True,True,2025-02-12T00:00:00Z
+INC-10377,new team member needs same access as colleague need this fixed today!!,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Finance,True,True,2025-03-31T00:00:00Z
+INC-10378,high volume printer offline after firmware update,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Procurement,False,True,2026-01-30T00:00:00Z
+INC-10379,vpn connected but cannot reach any internal systems,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Engineering,False,False,2025-06-28T00:00:00Z
+INC-10380,"Hi team, SAP print spool not releasing documents",SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Finance,True,True,2025-01-25T00:00:00Z
+INC-10381,whole project team needs access to new sharepoint site,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Engineering,True,True,2025-10-11T00:00:00Z
+INC-10382,ethernet not working on new docking station,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Engineering,True,True,2025-10-25T00:00:00Z
+INC-10383,mail flow stopped between two internal departments,Email Access,P2,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Logistics,False,True,2025-06-16T00:00:00Z
+INC-10384,security group deleted accidentally 50 users lost access,Permissions/Access,P2,Assign correct role or group membership in AD,permission_role_assign,standard,Engineering,False,True,2025-11-29T00:00:00Z
+INC-10385,entire team license expired cannot use business software,Software Install,P2,Assign or reactivate software license for user,software_license_assign,standard,Sales,False,True,2025-09-09T00:00:00Z
+INC-10386,vpn client not compatible with new antivirus software,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,IT,True,True,2026-01-08T00:00:00Z
+INC-10387,Chief Risk Officer cannot access compliance folder for board report,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,vip,Operations,False,True,2025-10-30T00:00:00Z
+INC-10388,urgent - authenticator backup codes not accepted,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Engineering,True,True,2025-11-08T00:00:00Z
+INC-10389,print preview fine but output wrong orientation,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Logistics,False,False,2026-01-20T00:00:00Z
+INC-10390,distribution list not working emails bouncing need this fixed today,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Logistics,True,True,2025-01-15T00:00:00Z
+INC-10391,new cost centre not reflecting in SAP user master data,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Procurement,True,True,2025-04-22T00:00:00Z
+INC-10392,64 bit app installed but 32 bit version needed this is urgent,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Sales,False,True,2025-01-13T00:00:00Z
+INC-10393,contractor needs read access to project documentation folder,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,contractor,Sales,True,True,2025-06-29T00:00:00Z
+INC-10394,cant instal app says admin rights required need this fixed today!!,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Operations,True,True,2025-09-12T00:00:00Z
+INC-10395,voip phone not registering likely network port issue need this fixed today please help asap,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Engineering,True,True,2025-11-15T00:00:00Z
+INC-10396,new ip phone not getting network connectivity need this fixed today,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Operations,True,True,2025-08-16T00:00:00Z
+INC-10397,microsoft 365 apps slow but local network is fine!!,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Operations,True,True,2025-03-15T00:00:00Z
+INC-10398,urgent - permission inheritance broken on nested sharepoint folders,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Operations,False,True,2025-06-08T00:00:00Z
+INC-10399,"Hi team, SAP not opening after laptop reimaged",SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Logistics,True,True,2025-03-23T00:00:00Z
+INC-10400,software deployment failing for all machines in building,Software Install,P2,Run installer with elevated admin privileges,software_admin_install,standard,Engineering,False,True,2026-01-16T00:00:00Z
+INC-10401,teams channel access denied for project member,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Engineering,True,True,2025-01-12T00:00:00Z
+INC-10402,slow dns lookup affecting all applications need this fixed today,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Sales,True,True,2025-11-05T00:00:00Z
+INC-10403,"Hi team, vpn client crashed after windows update need this fixed today",VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Finance,True,True,2025-07-03T00:00:00Z
+INC-10404,duplicate SAP user accounts created during migration blocking logins,SAP Issues,P2,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Engineering,False,True,2025-01-06T00:00:00Z
+INC-10405,removed from security group by mistake lost access need this fixed today,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Engineering,True,True,2025-05-28T00:00:00Z
+INC-10406,password reset required for contractor account,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,contractor,Operations,True,True,2025-01-01T00:00:00Z
+INC-10407,wrong company code appearing in SAP dropdown for my user,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Operations,True,True,2025-04-21T00:00:00Z
+INC-10408,new phone cant set up microsoft authenticator,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Operations,True,True,2025-05-12T00:00:00Z
+INC-10409,shared printer not visible to new users need this fixed today,Printer Issues,P3,Re-map network printer and verify IP address,printer_network_map,standard,Engineering,True,True,2025-08-12T00:00:00Z
+INC-10410,"Hi team, vpn logs showing tls handshake failure need this fixed today",VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,Engineering,True,True,2025-12-23T00:00:00Z
+INC-10411,group policy update removed local admin rights from devs please help asap,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Marketing,True,True,2025-11-03T00:00:00Z
+INC-10412,sharepoint site access denied after owner left please help asap,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Procurement,True,True,2026-01-16T00:00:00Z
+INC-10413,ip address conflict warning on my machine,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Sales,True,True,2025-03-04T00:00:00Z
+INC-10414,SAP down for finance month end close critical,SAP Issues,P1,Restart SAP application service and clear job queue,sap_service_restart,standard,Operations,False,True,2025-04-12T00:00:00Z
+INC-10415,follow me printing not working after new card issued this is urgent,Printer Issues,P4,Re-map network printer and verify IP address,printer_network_map,standard,Logistics,True,True,2025-10-30T00:00:00Z
+INC-10416,SAP login not working since morning,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Sales,True,True,2025-07-16T00:00:00Z
+INC-10417,power user group access needed for software testing need this fixed today,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Operations,True,True,2025-04-27T00:00:00Z
+INC-10418,urgent - locked out of account need urgent access,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Sales,True,True,2025-07-11T00:00:00Z
+INC-10419,new joiner cannot login on first day need this fixed today!!,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,HR,True,True,2025-08-25T00:00:00Z
+INC-10420,microsoft 365 services slow for entire department,Network/Connectivity,P2,Flush DNS cache and renew IP address,network_dns_flush,standard,IT,False,True,2025-12-14T00:00:00Z
+INC-10421,meeting invites not showing in calendar please help asap,Email Access,P3,Rebuild or repair Outlook profile,email_profile_repair,standard,IT,True,True,2025-06-01T00:00:00Z
+INC-10422,SSO redirecting to error page after company domain migration,Auth/SSO,P2,Clear SSO token cache and force re-authentication,sso_token_refresh,standard,IT,False,True,2025-07-26T00:00:00Z
+INC-10423,software update failed application now broken please help asap,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Operations,True,True,2025-11-19T00:00:00Z
+INC-10424,print jobs disappearing without printing please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2025-08-24T00:00:00Z
+INC-10425,read only access on folder should have edit rights please help asap,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Legal,True,True,2025-03-27T00:00:00Z
+INC-10426,urgent - print queue shows 200 stuck jobs from last night,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,HR,True,True,2025-05-09T00:00:00Z
+INC-10427,"Hi team, cannot reach development server from workstation",Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,Marketing,True,True,2025-12-28T00:00:00Z
+INC-10428,SAP password expired reset option unavailable,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Marketing,True,True,2025-08-09T00:00:00Z
+INC-10429,software trial version expired need full license,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,IT,True,True,2025-09-18T00:00:00Z
+INC-10430,"Hi team, power user group access needed for software testing",Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,IT,True,True,2025-08-21T00:00:00Z
+INC-10431,removed from multiple groups losing different access,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,HR,False,True,2026-01-18T00:00:00Z
+INC-10432,new joiner cannot login on first day account not provisioned,Auth/SSO,P2,Unlock user account in Active Directory,account_unlock,standard,Legal,False,True,2025-06-29T00:00:00Z
+INC-10433,pdf printing distorted text scrambled need this fixed today,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Sales,True,True,2025-06-02T00:00:00Z
+INC-10434,SAP print spool not releasing documents need this fixed today,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,IT,True,True,2026-01-22T00:00:00Z
+INC-10435,sap passwrd reset pls urgent need this fixed today,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Procurement,True,True,2025-01-03T00:00:00Z
+INC-10436,SAP basis reports application server needs emergency restart,SAP Issues,P1,Restart SAP application service and clear job queue,sap_service_restart,standard,Sales,False,True,2025-06-10T00:00:00Z
+INC-10437,secure print job stuck cannot release with correct pin,Printer Issues,P4,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Legal,True,True,2025-05-07T00:00:00Z
+INC-10438,cannot delete stuck print jobs queue frozen please help asap,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Engineering,True,True,2026-01-21T00:00:00Z
+INC-10439,wrong cost centre showing in SAP user profile need this fixed today this is urgent,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,IT,True,True,2025-11-17T00:00:00Z
+INC-10440,SAP business warehouse queries timing out repeatedly,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,Finance,True,True,2025-06-21T00:00:00Z
+INC-10441,"Hi team, vpn auto connect feature stopped working",VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Logistics,True,True,2025-10-24T00:00:00Z
+INC-10442,application shortcut missing from desktop after profile migration,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Finance,True,True,2025-02-28T00:00:00Z
+INC-10443,out of office not turning off after disabling need this fixed today,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Sales,True,True,2025-05-04T00:00:00Z
+INC-10444,cannot access finance module in SAP need this fixed today,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Marketing,True,True,2025-02-08T00:00:00Z
+INC-10445,"Hi team, windows login not working password seems expired",Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Marketing,True,True,2025-11-02T00:00:00Z
+INC-10446,distribution list not working emails bouncing please help asap,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,True,True,2025-10-18T00:00:00Z
+INC-10447,urgent - SAP not opening after laptop reimaged need this fixed today,SAP Issues,P3,Reset SAP credentials and clear session cache,sap_credential_reset,standard,Logistics,True,True,2025-12-08T00:00:00Z
+INC-10448,temp password not accepted for first login need this fixed today,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Engineering,True,True,2025-07-29T00:00:00Z
+INC-10449,vpn not connecting says authentication failed need this fixed today!!,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,IT,True,True,2025-10-06T00:00:00Z
+INC-10450,entire building lost internet access since 9am all users affected,Network/Connectivity,P1,Enable network port on switch for user device,network_port_enable,standard,Operations,False,True,2025-03-15T00:00:00Z
+INC-10451,urgent - vpn connection drops during video calls need this fixed today,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,HR,True,True,2025-12-23T00:00:00Z
+INC-10452,"Hi team, printer spooler service keeps crashing",Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,Legal,True,True,2025-11-20T00:00:00Z
+INC-10453,contractor needs temporary license for project tools!!,Software Install,P3,Assign or reactivate software license for user,software_license_assign,contractor,Sales,True,True,2025-05-24T00:00:00Z
+INC-10454,cant access SAP purchasing module,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Marketing,True,True,2025-08-24T00:00:00Z
+INC-10455,domain account inactive after 90 days,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Sales,True,True,2025-10-15T00:00:00Z
+INC-10456,CEO cannot login to laptop password expired,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,vip,HR,False,True,2025-02-12T00:00:00Z
+INC-10457,vpn keeps reverting to old config after every reboot,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Engineering,True,True,2025-06-04T00:00:00Z
+INC-10458,AD account showing as expired need this fixed today,Auth/SSO,P3,Unlock user account in Active Directory,account_unlock,standard,Procurement,True,True,2025-03-08T00:00:00Z
+INC-10459,group policy blocking access to control panel,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Sales,True,True,2025-05-20T00:00:00Z
+INC-10460,file permissions reset after server patching,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Procurement,True,True,2025-06-10T00:00:00Z
+INC-10461,cant reset password from self service portal,Auth/SSO,P3,Reset user password via LDAP / Active Directory,password_reset,standard,Engineering,True,True,2025-06-08T00:00:00Z
+INC-10462,urgent - admin rights revoked cant do basic IT tasks need this fixed today,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Sales,True,True,2025-04-20T00:00:00Z
+INC-10463,some websites blocked incorrectly by firewall need this fixed today,Network/Connectivity,P3,Flush DNS cache and renew IP address,network_dns_flush,standard,IT,True,True,2025-08-08T00:00:00Z
+INC-10464,room mailbox not accepting booking requests from users,Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Engineering,True,True,2025-08-08T00:00:00Z
+INC-10465,no internet access at my desk since morning need this fixed today!!,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Logistics,True,True,2025-03-20T00:00:00Z
+INC-10466,cant activate windows on new laptop need this fixed today,Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Finance,True,True,2025-07-08T00:00:00Z
+INC-10467,Director lost access to finance systems after role change,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,vip,Sales,False,True,2025-10-19T00:00:00Z
+INC-10468,"Hi team, new mac laptop vpn client not compatible need this fixed today",VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,IT,True,True,2025-11-27T00:00:00Z
+INC-10469,split tunneling not working correctly on vpn connection!!,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Legal,True,True,2025-01-10T00:00:00Z
+INC-10470,application wont uninstall stuck in programs list need this fixed today,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,IT,True,True,2025-03-30T00:00:00Z
+INC-10471,network monitoring alerting on port flapping this is urgent,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Procurement,False,True,2025-12-20T00:00:00Z
+INC-10472,cannot access finance module in SAP please help asap,SAP Issues,P3,Reassign or repair SAP user role permissions,sap_role_assign,standard,Sales,True,True,2026-01-14T00:00:00Z
+INC-10473,vpn error 812 authentication rejected please help asap,VPN Problems,P3,Renew or reinstall VPN certificate,vpn_cert_renew,standard,IT,True,True,2025-05-14T00:00:00Z
+INC-10474,printer keeps going into error state after every job,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,IT,False,False,2025-05-24T00:00:00Z
+INC-10475,bitlocker policy forcing encryption need exemption need this fixed today!!,Permissions/Access,P3,Fix Group Policy Object causing access denial,permission_policy_fix,standard,Legal,True,True,2026-01-17T00:00:00Z
+INC-10476,"Hi team, email alias not working bouncing from external senders",Email Access,P3,Remove conflicting email rules or corrupted filters,email_rule_fix,standard,Marketing,True,True,2025-03-28T00:00:00Z
+INC-10477,urgent - high packet loss on specific floor of building,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Logistics,False,False,2025-05-06T00:00:00Z
+INC-10478,power bi desktop not opening after update,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Marketing,True,True,2025-04-29T00:00:00Z
+INC-10479,cant access shared drive folder access denied,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Legal,True,True,2025-12-31T00:00:00Z
+INC-10480,packet loss on network causing application timeouts!!,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,Legal,False,False,2025-01-02T00:00:00Z
+INC-10481,new role need access to additional systems need this fixed today,Permissions/Access,P3,Assign correct role or group membership in AD,permission_role_assign,standard,Finance,True,True,2025-05-08T00:00:00Z
+INC-10482,software needs specific port opened for activation need this fixed today,Software Install,P3,Run installer with elevated admin privileges,software_admin_install,standard,Marketing,True,True,2025-10-21T00:00:00Z
+INC-10483,print spooler wont start error 1053,Printer Issues,P3,Clear stuck print queue and restart spooler service,printer_queue_clear,standard,IT,True,True,2025-04-28T00:00:00Z
+INC-10484,"Hi team, teams plugin missing from outlook after reinstall",Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Marketing,True,True,2025-04-13T00:00:00Z
+INC-10485,urgent - SAP not loading after todays patch update,SAP Issues,P3,Restart SAP application service and clear job queue,sap_service_restart,standard,IT,True,True,2025-05-21T00:00:00Z
+INC-10486,smart card login failing after card replacement need this fixed today,Auth/SSO,P3,Reconfigure or reset MFA / 2FA device,mfa_reconfigure,standard,Procurement,True,True,2025-04-21T00:00:00Z
+INC-10487,vpn gateway unreachable error since morning,VPN Problems,P3,Push updated VPN configuration to user device,vpn_config_push,standard,Finance,True,True,2025-10-16T00:00:00Z
+INC-10488,"Hi team, software license expired need renewal need this fixed today",Software Install,P3,Assign or reactivate software license for user,software_license_assign,standard,Marketing,True,True,2025-02-23T00:00:00Z
+INC-10489,whole project team needs access to new sharepoint site need this fixed today!!,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,Legal,True,True,2025-03-27T00:00:00Z
+INC-10490,urgent - printer error 0x00000709 when setting as default,Printer Issues,P3,Reinstall or update printer driver,printer_driver_install,standard,Procurement,True,True,2025-04-22T00:00:00Z
+INC-10491,new desk no network connection port not active need this fixed today,Network/Connectivity,P3,Enable network port on switch for user device,network_port_enable,standard,HR,True,True,2025-02-15T00:00:00Z
+INC-10492,mailbox quota exceeded cant send or receive!!,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,standard,HR,True,True,2026-01-16T00:00:00Z
+INC-10493,excel crashing when opening large files after update need this fixed today,Software Install,P3,Uninstall and clean reinstall application,software_reinstall,standard,Legal,True,True,2025-12-29T00:00:00Z
+INC-10494,vpn keeps asking to reinstall even after reinstalling need this fixed today,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Marketing,True,True,2025-09-29T00:00:00Z
+INC-10495,vpn keeps asking to reinstall even after reinstalling please help asap,VPN Problems,P3,Uninstall and reinstall VPN client software,vpn_client_reinstall,standard,Procurement,True,True,2025-12-31T00:00:00Z
+INC-10496,new office location has no active network ports installed,Network/Connectivity,P2,Enable network port on switch for user device,network_port_enable,standard,Operations,False,True,2025-01-17T00:00:00Z
+INC-10497,read permission granted but user needs write access too,Permissions/Access,P3,Grant folder/share access permissions in AD,permission_folder,standard,HR,True,True,2025-03-10T00:00:00Z
+INC-10498,dual monitor setup causes network adapter to drop,Network/Connectivity,P3,Update network adapter driver,network_driver_update,standard,Finance,True,True,2025-09-17T00:00:00Z
+INC-10499,contractor mailbox quota too small for project needs,Email Access,P3,Clear mailbox quota and archive old emails,email_quota_fix,contractor,HR,True,True,2025-01-28T00:00:00Z

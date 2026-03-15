@@ -42,11 +42,20 @@ async def get_escalated_tickets():
             evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else None
             latency_ms = audit_res.data[0]["latency_ms"] if audit_res.data else None
 
+            # Also pull outcome for signal data
+            outcome_res = supabase.table("ticket_outcomes") \
+                .select("signal_a, signal_b, signal_c, escalation_reason") \
+                .eq("ticket_id", t["id"]) \
+                .limit(1) \
+                .execute()
+            outcome = outcome_res.data[0] if outcome_res.data else None
+
             enriched.append({
                 **t,
                 "ticket_id": t["id"],
                 "evidence_card": evidence_card,
                 "decision_latency_ms": latency_ms,
+                "escalation_reason": outcome["escalation_reason"] if outcome else None,
             })
 
         # Sort by severity then created_at
@@ -83,11 +92,87 @@ async def get_ticket_evidence(ticket_id: str):
         evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else None
         latency_ms = audit_res.data[0]["latency_ms"] if audit_res.data else None
 
+        # Fetch outcome data for signals and escalation context
+        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        outcome = outcome_res.data[0] if outcome_res.data else None
+
+        # Fetch thresholds for this ticket category
+        thresholds = None
+        if t.get("category"):
+            th_res = supabase.table("category_thresholds") \
+                .select("threshold_a, threshold_b, threshold_c, min_sample_size") \
+                .eq("category", t.get("category")) \
+                .limit(1) \
+                .execute()
+            thresholds = th_res.data[0] if th_res.data else None
+
+        candidate_fixes = []
+        if isinstance(evidence_card, dict):
+            candidate_fixes = evidence_card.get("candidate_fixes") or []
+
+        decision_latency = None
+        if isinstance(evidence_card, dict):
+            raw_latency = evidence_card.get("decision_latency")
+            if isinstance(raw_latency, (int, float)):
+                decision_latency = float(raw_latency)
+            elif isinstance(raw_latency, dict):
+                total_ms = raw_latency.get("total_ms")
+                if isinstance(total_ms, (int, float)):
+                    decision_latency = float(total_ms)
+        if decision_latency is None and latency_ms is not None:
+            decision_latency = float(latency_ms)
+
+        escalation_reason = None
+        if outcome and outcome.get("escalation_reason"):
+            escalation_reason = outcome.get("escalation_reason")
+        elif isinstance(evidence_card, dict):
+            escalation_reason = evidence_card.get("escalation_reason")
+
+        # Approximate layer for UI trace when explicit layer is unavailable
+        layer_intercepted = None
+        if isinstance(evidence_card, dict):
+            layer_intercepted = evidence_card.get("layer_intercepted")
+        if layer_intercepted is None and t.get("status") == "escalated":
+            reason_text = (escalation_reason or "").lower()
+            sig_a = outcome.get("signal_a") if outcome else None
+            sig_b = outcome.get("signal_b") if outcome else None
+            sig_c = outcome.get("signal_c") if outcome else None
+            th_a = thresholds.get("threshold_a") if thresholds else None
+            th_b = thresholds.get("threshold_b") if thresholds else None
+            th_c = thresholds.get("threshold_c") if thresholds else None
+
+            if "vip" in reason_text or "p1" in reason_text or "p2" in reason_text or "freeze" in reason_text:
+                layer_intercepted = 1
+            elif "novel" in reason_text:
+                layer_intercepted = 2
+            elif sig_a is not None and th_a is not None and sig_a < th_a:
+                layer_intercepted = 3
+            elif sig_b is not None and th_b is not None and sig_b < th_b:
+                layer_intercepted = 4
+            elif sig_c is not None and th_c is not None and sig_c < th_c:
+                layer_intercepted = 5
+            elif outcome and outcome.get("sandbox_passed") is False:
+                layer_intercepted = 6
+
         return {
             **t,
             "ticket_id": t["id"],
             "evidence_card": evidence_card,
             "decision_latency_ms": latency_ms,
+            "outcome": outcome,
+            "candidate_fixes": candidate_fixes,
+            "resolution_applied": (outcome.get("resolution") if outcome else None) or (evidence_card.get("resolution_applied") if isinstance(evidence_card, dict) else None),
+            "sandbox_passed": outcome.get("sandbox_passed") if outcome else None,
+            "escalation_reason": escalation_reason,
+            "signal_a": outcome.get("signal_a") if outcome else None,
+            "signal_b": outcome.get("signal_b") if outcome else None,
+            "signal_c": outcome.get("signal_c") if outcome else None,
+            "threshold_a": thresholds.get("threshold_a") if thresholds else None,
+            "threshold_b": thresholds.get("threshold_b") if thresholds else None,
+            "threshold_c": thresholds.get("threshold_c") if thresholds else None,
+            "max_similarity": outcome.get("signal_a") if outcome else None,
+            "layer_intercepted": layer_intercepted,
+            "total_latency_ms": decision_latency,
         }
     except HTTPException:
         raise
@@ -106,12 +191,12 @@ class AgentResolution(BaseModel):
 async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
     """
     Agent submits a resolution for an escalated ticket.
-    If verified: embeds resolution into Qdrant, inserts outcome, updates ticket status.
+    If verified: embeds resolution into Qdrant with the correct cluster ID,
+    inserts outcome, updates ticket status.
     """
     from api.main import app_state
 
     supabase = get_supabase()
-    qdrant_client = app_state["qdrant_client"]
 
     try:
         # Fetch original ticket
@@ -129,23 +214,48 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
         except Exception:
             resolution_msg = resolution.resolution_text  # fallback
 
-        # Insert ticket outcome
-        supabase.table("ticket_outcomes").insert({
-            "ticket_id": ticket_id,
-            "category": ticket.get("category"),
-            "auto_resolved": False,
-            "sandbox_passed": None,
+        # Check AI Suggestion for retrospective match
+        outcome_res = supabase.table("ticket_outcomes").select("ai_suggestion").eq("ticket_id", ticket_id).execute()
+        ai_suggestion = outcome_res.data[0].get("ai_suggestion") if outcome_res.data else None
+        
+        retrospective_match = False
+        auto_resolved_retro = False
+        if ai_suggestion:
+            from difflib import SequenceMatcher
+            similarity = SequenceMatcher(None, ai_suggestion.lower(), resolution.resolution_text.lower()).ratio()
+            if similarity > 0.80:
+                retrospective_match = True
+                auto_resolved_retro = True
+
+        # Update ticket outcome
+        supabase.table("ticket_outcomes").update({
             "resolution": resolution.resolution_text,
             "agent_verified": resolution.resolution_type == "verified",
             "override_reason": resolution.override_reason,
-            "escalation_reason": None,
-        }).execute()
+            "retrospective_match": retrospective_match,
+            "auto_resolved": auto_resolved_retro if retrospective_match else False
+        }).eq("ticket_id", ticket_id).execute()
 
-        # If verified, embed and upsert into Qdrant for future auto-resolution
+        # If verified, embed and upsert into Qdrant with the correct cluster
         if resolution.resolution_type == "verified":
             try:
                 import services.qdrant as qdrant_svc
+                from utils.cluster_map import get_resolution_cluster
+
+                cluster_map = app_state.get("cluster_map", {})
+
+                # Embed the ticket description (not the resolution — we want similarity to future descriptions)
                 vector = await generate_embedding(ticket.get("description", ""))
+
+                # Determine cluster: first try exact lookup, then fall back to top similar result's cluster
+                resolution_cluster = get_resolution_cluster(resolution.resolution_text, cluster_map)
+                if not resolution_cluster or resolution_cluster == "unknown_cluster":
+                    similar = await qdrant_svc.search_similar(vector, top_k=1)
+                    if similar and similar[0].payload:
+                        resolution_cluster = similar[0].payload.get("resolution_cluster", "agent_verified")
+                    else:
+                        resolution_cluster = "agent_verified"
+
                 await qdrant_svc.upsert_ticket(
                     ticket_id=ticket_id,
                     vector=vector,
@@ -153,17 +263,22 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
                         "category": ticket.get("category"),
                         "description": ticket.get("description"),
                         "resolution": resolution.resolution_text,
-                        "resolution_cluster": "agent_verified",
+                        "resolution_cluster": resolution_cluster,
                         "severity": ticket.get("severity"),
                         "auto_resolved": False,
                         "verified": True,
                     }
                 )
+                logger.info(f"Upserted verified resolution into Qdrant with cluster '{resolution_cluster}'")
             except Exception as e:
                 logger.warning(f"Qdrant upsert failed for verified resolution: {e}")
 
         # Log to audit
-        evidence = {"resolution": resolution.resolution_text, "type": resolution.resolution_type, "override_reason": resolution.override_reason}
+        evidence = {
+            "resolution": resolution.resolution_text,
+            "type": resolution.resolution_type,
+            "override_reason": resolution.override_reason
+        }
         log_to_audit(ticket_id, "AGENT_RESOLVED", evidence, supabase)
 
         # Update ticket status
@@ -185,6 +300,7 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
         logger.error(f"Failed to resolve ticket {ticket_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/agent/all")
 async def get_all_tickets():
     """
@@ -192,7 +308,6 @@ async def get_all_tickets():
     """
     supabase = get_supabase()
     try:
-        # Get all tickets, ordered by newest first
         tickets_res = supabase.table("tickets").select(
             "id, user_id, description, category, severity, status, created_at, resolved_at, users(email)"
         ).order("created_at", desc=True).limit(250).execute()

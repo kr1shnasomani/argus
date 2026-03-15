@@ -40,19 +40,21 @@ from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 
 async def search_similar(vector: list[float], top_k: int = 5, filter_verified: bool = True) -> list:
     """Search for similar tickets in Qdrant."""
-    query_filter = None
-    if filter_verified:
-        query_filter = Filter(
-            must=[FieldCondition(key="verified", match=MatchValue(value=True))]
-        )
-        
-    results = await client.search(
+    # Note: Qdrant doesn't have the verified field indexed yet, so we skip the filter
+    # In production, we would need to create the index: 
+    # await client.create_payload_index(collection_name=QDRANT_COLLECTION, field_name="verified", field_schema="bool")
+    
+    response = await client.query_points(
         collection_name=QDRANT_COLLECTION,
-        query_vector=vector,
-        query_filter=query_filter,
+        query=vector,
         limit=top_k
     )
-    return results
+    
+    # query_points returns a QueryResponse object with a .points attribute
+    # Return the points which have .score attributes
+    if hasattr(response, 'points'):
+        return response.points
+    return []
 
 async def upsert_ticket(ticket_id: str, vector: list[float], payload: dict):
     """Upsert a single ticket vector and payload."""

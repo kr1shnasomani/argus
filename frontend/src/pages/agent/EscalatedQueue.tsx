@@ -32,6 +32,10 @@ export const EscalatedQueue = () => {
     return `${hours}h ${minutes % 60}m ago`;
   };
 
+  const getEscalationReason = (ticket: { escalation_reason?: string | null; evidence_card?: { escalation_reason?: string } }) => {
+    return ticket.escalation_reason || ticket.evidence_card?.escalation_reason || "Escalated by policy gate";
+  };
+
   return (
     <motion.div
       className="space-y-6"
@@ -143,7 +147,7 @@ export const EscalatedQueue = () => {
                   variants={row}
                   className="cursor-pointer group border-b transition-colors duration-150"
                   style={{ borderColor: 'var(--argus-border)' }}
-                  onClick={() => navigate(`/agent/ticket/${ticket.ticket_id}`)}
+                  onClick={() => navigate(`/agent/ticket/${ticket.ticket_id}`, { state: { from: '/agent' } })}
                   whileHover={{ backgroundColor: 'var(--argus-surface-2)' }}
                 >
                   <TableCell>
@@ -192,7 +196,7 @@ export const EscalatedQueue = () => {
                     <div className="flex items-start gap-1.5">
                       <AlertCircle size={12} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-amber)' }} />
                       <span className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>
-                        {ticket.escalation_reason}
+                        {getEscalationReason(ticket)}
                       </span>
                     </div>
                   </TableCell>

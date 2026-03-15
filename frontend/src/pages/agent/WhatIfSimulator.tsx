@@ -13,6 +13,7 @@ interface SimulationParams {
   description: string;
   user_tier: string;
   severity: string;
+  system: string;
   change_freeze_active: boolean;
   active_incident: boolean;
 }
@@ -28,6 +29,7 @@ export const WhatIfSimulator = () => {
     description: "",
     user_tier: "Standard",
     severity: "P3",
+    system: "Frontend",
     change_freeze_active: false,
     active_incident: false,
   });
@@ -148,6 +150,22 @@ export const WhatIfSimulator = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>System Context</Label>
+              <Select value={formData.system} onValueChange={(v: string) => setFormData({...formData, system: v})}>
+                <SelectTrigger style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+                  <SelectItem value="Frontend" style={{ color: 'var(--argus-text-primary)' }}>Frontend</SelectItem>
+                  <SelectItem value="Backend" style={{ color: 'var(--argus-text-primary)' }}>Backend</SelectItem>
+                  <SelectItem value="Database" style={{ color: 'var(--argus-text-primary)' }}>Database</SelectItem>
+                  <SelectItem value="Network" style={{ color: 'var(--argus-text-primary)' }}>Network</SelectItem>
+                  <SelectItem value="ThirdParty" style={{ color: 'var(--argus-text-primary)' }}>Third-Party Integration</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="rounded-xl border p-4 space-y-4" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>

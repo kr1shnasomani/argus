@@ -35,6 +35,17 @@ async def get_threshold_for_category(category: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/api/config/systems")
+async def get_all_systems():
+    """Returns all available systems."""
+    supabase = get_supabase()
+    try:
+        res = supabase.table("systems").select("id, name").execute()
+        return res.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class SimulateRequest(BaseModel):
     description: str
     category: str = "General"

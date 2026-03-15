@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layers, LayoutDashboard, Activity, Terminal, Sun, Moon, ChevronRight, Home, Sparkles, Radio } from 'lucide-react';
+import { Layers, LayoutDashboard, Activity, Terminal, Sun, Moon, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
@@ -31,14 +31,17 @@ export const AgentLayout = () => {
 
   const navItems = [
     { name: 'Escalated Queue', path: '/agent', icon: Layers, desc: 'Pending review', count: null },
+    { name: 'All Tickets', path: '/agent/history', icon: Archive, desc: 'Ticket history', count: null },
     { name: 'Metrics', path: '/agent/metrics', icon: LayoutDashboard, desc: 'System telemetry', count: null },
     { name: 'Simulator', path: '/agent/simulator', icon: Terminal, desc: 'What-if engine', count: null },
     { name: 'Audit Log', path: '/agent/audit', icon: Activity, desc: 'Hash chain', count: null },
   ];
 
+  const activePathFallback = location.state?.from || '/agent';
+
   const pageTitle = navItems.find(item => 
     location.pathname === item.path || 
-    (location.pathname.startsWith('/agent/ticket') && item.path === '/agent')
+    (location.pathname.startsWith('/agent/ticket') && item.path === activePathFallback)
   )?.name || 'Agent Portal';
 
   return (
@@ -121,6 +124,26 @@ export const AgentLayout = () => {
             className="text-[10px] font-semibold uppercase tracking-widest px-3 pb-2 pt-1"
             style={{ color: 'var(--argus-text-muted)' }}
           >
+            Agent Tools
+          </div>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path || 
+              (location.pathname.startsWith('/agent/ticket') && item.path === activePathFallback);
+
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className="sidebar-link group"
+                style={{ 
+                  background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
+                  color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)'
+                }}
+              >
+                <div 
+                  className="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0"
+                  style={{ 
                     background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
                     color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)'
                   }}
@@ -136,11 +159,7 @@ export const AgentLayout = () => {
                 {isActive && (
                   <ChevronRight size={12} className="flex-shrink-0" style={{ color: 'var(--argus-indigo)', opacity: 0.6 }} />
                 )}
-              </Link> 
-            <Link to="/agent/history" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${location.pathname === "/agent/history" ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary"}`}> 
-              <Archive className="h-4 w-4" /> 
-              All Tickets 
-            </Link>
+              </Link>
             );
           })}
 
@@ -160,10 +179,6 @@ export const AgentLayout = () => {
                 <Sparkles size={15} />
               </div>
               <span className="text-[13px]">Employee View</span>
-            </Link> 
-            <Link to="/agent/history" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${location.pathname === "/agent/history" ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary"}`}> 
-              <Archive className="h-4 w-4" /> 
-              All Tickets 
             </Link>
             <Link
               to="/"
@@ -173,10 +188,6 @@ export const AgentLayout = () => {
                 <Home size={15} />
               </div>
               <span className="text-[13px]">Back to Home</span>
-            </Link> 
-            <Link to="/agent/history" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${location.pathname === "/agent/history" ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary"}`}> 
-              <Archive className="h-4 w-4" /> 
-              All Tickets 
             </Link>
           </div>
         </nav>
@@ -233,10 +244,6 @@ export const AgentLayout = () => {
           <div className="flex items-center gap-2 text-sm">
             <Link to="/agent" className="transition-colors hover:opacity-80" style={{ color: 'var(--argus-text-muted)' }}>
               Agent Portal
-            </Link> 
-            <Link to="/agent/history" className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${location.pathname === "/agent/history" ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary"}`}> 
-              <Archive className="h-4 w-4" /> 
-              All Tickets 
             </Link>
             <ChevronRight size={13} style={{ color: 'var(--argus-text-muted)', opacity: 0.5 }} />
             <span className="font-semibold" style={{ color: 'var(--argus-text-primary)' }}>{pageTitle}</span>

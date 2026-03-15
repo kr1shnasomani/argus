@@ -48,7 +48,7 @@ export const TicketStatus = () => {
       accent: 'indigo',
       icon: <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--argus-indigo)' }} />,
       title: "Processing Request",
-      desc: "Your ticket is being analyzed. This usually takes under 2 minutes.",
+      desc: "Your ticket is being analyzed across policy checks, retrieval, and confidence signals.",
       badgeClass: 'status-processing',
     },
     auto_resolved: {

@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, XCircle, BrainCircuit, Activity, AlertCircle, CheckCircle2, BookOpen, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, Activity, AlertCircle, CheckCircle2, BookOpen, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { EvidenceCardSkeleton } from "@/components/ui/skeleton-loaders";
@@ -26,6 +26,30 @@ export const EvidenceCardView = () => {
     queryFn: () => getTicketEvidence(id!),
     enabled: !!id,
   });
+
+  const candidateFixes = card?.candidate_fixes || card?.evidence_card?.candidate_fixes || [];
+  const escalationReason =
+    card?.escalation_reason ||
+    card?.outcome?.escalation_reason ||
+    card?.evidence_card?.escalation_reason ||
+    "Unknown reason";
+  const interceptedLayer = card?.layer_intercepted ?? card?.evidence_card?.layer_intercepted ?? null;
+  const signalA = card?.signal_a ?? card?.outcome?.signal_a ?? null;
+  const signalAThreshold = card?.threshold_a ?? null;
+  const signalB = card?.signal_b ?? card?.outcome?.signal_b ?? null;
+  const signalBThreshold = card?.threshold_b ?? null;
+  const signalC = card?.signal_c ?? card?.outcome?.signal_c ?? null;
+  const signalCThreshold = card?.threshold_c ?? null;
+  const displayedLatency =
+    card?.total_latency_ms ??
+    card?.decision_latency_ms ??
+    (typeof card?.evidence_card?.decision_latency === "number" ? card.evidence_card.decision_latency : null);
+  const appliedResolution =
+    card?.resolution_applied ||
+    card?.outcome?.resolution ||
+    card?.evidence_card?.resolution_applied ||
+    candidateFixes?.[0]?.resolution ||
+    "Agent synthesized a novel response or resolution is unavailable.";
 
   const resolveMutation = useMutation({
     mutationFn: resolveTicket,
@@ -73,44 +97,6 @@ export const EvidenceCardView = () => {
       </div>
     );
   }
-
-  const renderSignal = (name: string, signal: { value: number | null; threshold: number | null; passed: boolean }) => {
-    if (!signal) return null;
-    const valueStr = signal.value !== null ? (signal.value * 100).toFixed(1) + "%" : "N/A";
-    const thresholdStr = signal.threshold !== null ? (signal.threshold * 100).toFixed(1) + "%" : "N/A";
-    const percent = signal.value !== null ? signal.value * 100 : 0;
-    return (
-      <motion.div
-        className="space-y-1.5 mb-4"
-        initial={{ opacity: 0, x: -6 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.35 }}
-      >
-        <div className="flex justify-between items-center text-sm">
-          <span className="font-medium flex items-center gap-1.5" style={{ color: 'var(--argus-text-primary)' }}>
-            {signal.passed
-              ? <CheckCircle2 size={14} style={{ color: 'var(--argus-emerald)' }} />
-              : <XCircle size={14} style={{ color: 'var(--argus-red)' }} />
-            }
-            {name}
-          </span>
-          <span className="font-mono text-xs" style={{ color: 'var(--argus-text-muted)' }}>
-            <span style={{ color: signal.passed ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>{valueStr}</span>
-            {' / '}{thresholdStr}
-          </span>
-        </div>
-        <div className="signal-bar-track">
-          <div
-            className="signal-bar-fill"
-            style={{
-              width: `${Math.max(percent, 2)}%`,
-              background: signal.passed ? 'var(--argus-emerald)' : signal.value === null ? 'var(--argus-border)' : 'var(--argus-red)'
-            }}
-          />
-        </div>
-      </motion.div>
-    );
-  };
 
   return (
     <motion.div
@@ -172,49 +158,134 @@ export const EvidenceCardView = () => {
           <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3 border-b" style={{ background: 'var(--argus-indigo-light)', borderColor: 'rgba(79,70,229,0.15)' }}>
               <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--argus-indigo)' }}>
-                <BrainCircuit size={15} /> Argus Engine Trace
+                <Activity size={15} /> Argus Engine Trace
               </div>
             </div>
             <div className="p-5 space-y-5">
 
-              {/* Escalation Alert */}
-              <div className="flex items-start gap-3 p-4 rounded-xl border" style={{ background: 'var(--argus-amber-light)', borderColor: 'rgba(217, 119, 6, 0.2)' }}>
-                <AlertCircle size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-amber)' }} />
-                <div>
-                  <h4 className="font-semibold text-sm mb-1" style={{ color: 'var(--argus-amber)' }}>Human Escalation Triggered</h4>
-                  <p className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>{card.escalation_reason}</p>
-                  <p className="text-xs mt-1.5" style={{ color: 'var(--argus-text-muted)' }}>Pipeline halted at Layer {card.layer_intercepted}</p>
-                </div>
-              </div>
-
-              {/* Confidence Signals */}
-              {card.signals ? (
-                <div>
-                  <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--argus-text-muted)' }}>Detection Signals</h4>
-                  {renderSignal("Semantic Similarity", card.signals["semantic_similarity"] || { value: null, threshold: null, passed: false })}
-                  {renderSignal("Cohort Consensus", card.signals["cohort_consensus"] || { value: null, threshold: null, passed: false })}
-                  {renderSignal("Historical Success", card.signals["historical_success"] || { value: null, threshold: null, passed: false })}
-                  <div className="flex justify-between items-center text-sm mt-2 p-3 rounded-lg border" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
-                    <span className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>Novelty Detection</span>
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${card.is_novel ? 'status-escalated' : 'status-auto_resolved'}`}>
-                      {card.is_novel ? "NOVEL ISSUE" : "KNOWN ARCHETYPE"}
-                    </span>
+              {/* Escalation Alert / Auto-Resolution Alert */}
+              {card.status === "auto_resolved" ? (
+                <div className="flex items-start gap-3 p-4 rounded-xl border" style={{ background: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-emerald)' }} />
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1" style={{ color: 'var(--argus-emerald)' }}>Successfully Auto-Resolved</h4>
+                    <p className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>Agent completed the request and passed sandbox validation.</p>
+                    <p className="text-xs mt-1.5" style={{ color: 'var(--argus-text-muted)' }}>Sandbox Output: {card.sandbox_passed ? 'Tests Passed' : 'Unknown'}</p>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl border text-center text-sm" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
-                  No AI signal data — this ticket was escalated directly.
+                <div className="flex items-start gap-3 p-4 rounded-xl border" style={{ background: 'var(--argus-amber-light)', borderColor: 'rgba(217, 119, 6, 0.2)' }}>
+                  <AlertCircle size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-amber)' }} />
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1" style={{ color: 'var(--argus-amber)' }}>Human Escalation Triggered</h4>
+                    <p className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>{escalationReason}</p>
+                    <p className="text-xs mt-1.5" style={{ color: 'var(--argus-text-muted)' }}>Pipeline halted at Layer {interceptedLayer || "N/A"}</p>
+                  </div>
                 </div>
               )}
 
+              {/* Central Trace Component - Vertical Stepper */}
+              <div className="pt-2">
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--argus-text-muted)' }}>Pipeline Execution Trace</h4>
+                <div className="relative border-l-2 ml-3 pl-6 space-y-6" style={{ borderColor: 'var(--argus-border)' }}>
+
+                  {/* 1. Intake & Categorization */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: 'var(--argus-emerald)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--argus-emerald)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Intake & Categorization</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>Ticket parsed as <span style={{ color: 'var(--argus-indigo)' }}>{card.category}</span></p>
+                  </div>
+
+                  {/* 2. Policy Gate */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: interceptedLayer === 1 ? 'var(--argus-red)' : 'var(--argus-emerald)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: interceptedLayer === 1 ? 'var(--argus-red)' : 'var(--argus-emerald)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Policy Gate</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      {interceptedLayer === 1 ? 'TRIGGERED' : 'PASSED'}
+                    </p>
+                  </div>
+
+                  {/* 3. Vector DB Novelty Check */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: signalA != null ? (signalA >= 0.5 ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: signalA != null ? (signalA >= 0.5 ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Vector DB Novelty Check</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      Max similarity: {signalA != null ? `${(signalA * 100).toFixed(1)}%` : 'N/A'} / 50.0% threshold
+                    </p>
+                  </div>
+
+                  {/* 4. Signal A */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: signalA != null && signalAThreshold != null ? (signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: signalA != null && signalAThreshold != null ? (signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Signal A (Semantic Similarity)</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      {signalA != null && signalAThreshold != null ? `${signalA.toFixed(3)} vs ${signalAThreshold.toFixed(2)} threshold` : 'Skipped or unavailable'}
+                    </p>
+                  </div>
+
+                  {/* 5. Signal B */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: signalB != null && signalBThreshold != null ? (signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: signalB != null && signalBThreshold != null ? (signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Signal B (Resolution Consistency)</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      {signalB != null && signalBThreshold != null ? `${signalB.toFixed(3)} vs ${signalBThreshold.toFixed(2)} threshold` : 'Skipped or unavailable'}
+                    </p>
+                  </div>
+
+                  {/* 6. Signal C */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: signalC != null && signalCThreshold != null ? (signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: signalC != null && signalCThreshold != null ? (signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)') : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Signal C (Category Accuracy)</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      {signalC != null && signalCThreshold != null ? `${signalC.toFixed(3)} vs ${signalCThreshold.toFixed(2)} threshold` : 'Skipped or unavailable'}
+                    </p>
+                  </div>
+
+                  {/* 7. Sandbox Execution */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: card.sandbox_passed || card.status === 'auto_resolved' ? 'var(--argus-emerald)' : interceptedLayer === 6 ? 'var(--argus-red)' : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: card.sandbox_passed || card.status === 'auto_resolved' ? 'var(--argus-emerald)' : interceptedLayer === 6 ? 'var(--argus-red)' : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Sandbox Execution</h5>
+                    <p className="text-xs mt-1" style={{ color: 'var(--argus-text-muted)' }}>
+                      {card.status === 'auto_resolved' || card.sandbox_passed ? 'PASSED' : interceptedLayer === 6 ? 'FAILED' : 'SKIPPED'}
+                    </p>
+                  </div>
+
+                  {/* 8. Decision */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }} />
+                    </div>
+                    <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Decision</h5>
+                    <p className="text-xs mt-1" style={{ color: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
+                      {card.status === 'auto_resolved' ? 'AUTO RESOLVED' : 'HUMAN ESCALATION REQUIRED'}
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
               {/* Candidate Fixes */}
-              {card.candidate_fixes && card.candidate_fixes.length > 0 && (
+              {candidateFixes && candidateFixes.length > 0 && (
                 <div>
                   <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--argus-text-muted)' }}>
                     <BookOpen size={12} /> Candidate Solutions
                   </h4>
                   <div className="space-y-2">
-                    {card.candidate_fixes.map((fix, idx) => (
+                    {candidateFixes.slice(0, 3).map((fix, idx) => (
                       <motion.div
                         key={idx}
                         className="candidate-fix p-3.5 rounded-xl border cursor-pointer"
@@ -227,9 +298,11 @@ export const EvidenceCardView = () => {
                         whileTap={{ scale: 0.99 }}
                       >
                         <div className="flex justify-between items-center mb-1.5">
-                          <span className="font-mono text-xs font-medium" style={{ color: 'var(--argus-indigo)' }}>#{fix.ticket_id.substring(0, 8)}</span>
+                          <span className="font-mono text-xs font-medium" style={{ color: 'var(--argus-indigo)' }}>#{(fix.ticket_id || 'N/A').substring(0, 8)}</span>
                           <span className="text-[10px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
-                            {(fix.similarity * 100).toFixed(1)}% match
+                            {typeof (fix as any).similarity_score === 'number'
+                              ? `${(((fix as any).similarity_score as number) * 100).toFixed(1)}% match`
+                              : (typeof fix.similarity === 'number' ? `${(fix.similarity * 100).toFixed(1)}% match` : 'match n/a')}
                           </span>
                         </div>
                         <p className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>{fix.resolution}</p>
@@ -245,24 +318,53 @@ export const EvidenceCardView = () => {
                 <Zap size={11} style={{ color: 'var(--argus-indigo)' }} />
                 Total inference latency:
                 <span className="font-mono font-semibold" style={{ color: 'var(--argus-text-primary)' }}>
-                  {card.total_latency_ms != null ? `${card.total_latency_ms.toFixed(0)}ms` : 'N/A'}
+                  {displayedLatency != null ? `${displayedLatency.toFixed(0)}ms` : 'N/A'}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT: Resolution Workspace */}
+        {/* RIGHT: Resolution Workspace or Auto-Resolution Audit */}
         <div className="lg:col-span-5">
           <div className="sticky top-6">
-            <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
-              <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--argus-indigo) 0%, #7C3AED 100%)' }} />
-              <form onSubmit={handleSubmit}>
+            {card.status === "auto_resolved" ? (
+              <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
+                <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                 <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
-                  <h3 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Submit Human Resolution</h3>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>Resolve this ticket and train the Argus model.</p>
+                  <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--argus-emerald)' }}>
+                    <CheckCircle2 size={16} /> Auto-Resolution Audit
+                  </h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>This ticket was handled autonomously by Argus.</p>
                 </div>
-                <div className="p-5 space-y-5">
+                <div className="p-5 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Applied Resolution</Label>
+                    <div className="p-4 rounded-xl border text-sm whitespace-pre-wrap" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
+                      {appliedResolution}
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 rounded-lg border flex items-start gap-3 mt-4" style={{ background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                    <Activity size={16} className="mt-0.5" style={{ color: 'var(--argus-emerald)' }} />
+                    <div>
+                      <h4 className="text-xs font-semibold" style={{ color: 'var(--argus-emerald)' }}>Validation Complete</h4>
+                      <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: 'var(--argus-text-muted)' }}>
+                        Sandbox tests executed successfully. No human intervention was required.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
+                <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--argus-indigo) 0%, #7C3AED 100%)' }} />
+                <form onSubmit={handleSubmit}>
+                  <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Submit Human Resolution</h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>Resolve this ticket and train the Argus model.</p>
+                  </div>
+                  <div className="p-5 space-y-5">
 
                   {/* Resolution Text */}
                   <div className="space-y-1.5">
@@ -345,6 +447,7 @@ export const EvidenceCardView = () => {
                 </div>
               </form>
             </div>
+            )}
           </div>
         </div>
       </div>

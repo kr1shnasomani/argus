@@ -1,5 +1,3 @@
-import TicketHistory from "./pages/agent/TicketHistory";
-
 import { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -18,6 +16,7 @@ const EvidenceCardView = lazy(() => import('@/pages/agent/EvidenceCardView').the
 const WhatIfSimulator = lazy(() => import('@/pages/agent/WhatIfSimulator').then((m) => ({ default: m.WhatIfSimulator })));
 const MetricsDashboard = lazy(() => import('@/pages/agent/MetricsDashboard').then((m) => ({ default: m.MetricsDashboard })));
 const AuditLog = lazy(() => import('@/pages/agent/AuditLog').then((m) => ({ default: m.AuditLog })));
+const TicketHistory = lazy(() => import('@/pages/agent/TicketHistory').then((m) => ({ default: m.TicketHistory })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +46,7 @@ function App() {
               {/* Agent Portal */}
               <Route path="/agent" element={<AgentLayout />}>
                 <Route index element={<EscalatedQueue />} />
-          <Route path="history" element={<TicketHistory />} />
+                <Route path="history" element={<TicketHistory />} />
                 <Route path="ticket/:id" element={<EvidenceCardView />} />
                 <Route path="metrics" element={<MetricsDashboard />} />
                 <Route path="simulator" element={<WhatIfSimulator />} />

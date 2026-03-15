@@ -17,7 +17,7 @@ async def submit_ticket(
     category: Optional[str] = Form(""),
     severity: Optional[str] = Form("P3"),
     urgent: Optional[bool] = Form(False),
-    system_name: Optional[str] = Form(None),
+    system_id: Optional[str] = Form(None),
     attachment: Optional[UploadFile] = File(None),
 ):
     """
@@ -38,16 +38,27 @@ async def submit_ticket(
         except Exception as e:
             logger.warning(f"Attachment upload failed: {e}. Proceeding without attachment.")
 
+    supabase = get_supabase()
+    category_clean = (category or "").strip()
+
+    # Get system_name from system_id if provided
+    system_name = None
+    if system_id:
+        try:
+            system_res = supabase.table("systems").select("name").eq("id", system_id).execute()
+            if system_res.data:
+                system_name = system_res.data[0]["name"]
+        except Exception as e:
+            logger.warning(f"Failed to fetch system name for system_id '{system_id}': {e}")
+
     ticket = {
         "description": description,
-        "category": category,
+        "category": category_clean if category_clean else None,
         "severity": severity,
         "user_email": user_email,
         "system_name": system_name,
         "attachment_url": attachment_url,
     }
-
-    supabase = get_supabase()
 
     # Insert the raw ticket first (status: processing)
     try:
@@ -59,7 +70,8 @@ async def submit_ticket(
         ticket_row = {
             "user_id": user_id,
             "description": description,
-            "category": category,
+            # DB column is NOT NULL. Keep a placeholder until pipeline auto-detects and overwrites it.
+            "category": ticket["category"] or "Unclassified",
             "severity": severity,
             "status": "processing",
             "attachment_url": attachment_url
@@ -74,11 +86,10 @@ async def submit_ticket(
         raise HTTPException(status_code=500, detail=f"Failed to create ticket: {e}")
 
     # Run the full pipeline
-    import services.supabase as supabase_svc
     try:
-        result = await process_ticket(ticket, supabase_svc, app_state["qdrant_client"], app_state["cluster_map"])
+        result = await process_ticket(ticket, supabase, app_state["qdrant_client"], app_state["cluster_map"])
     except Exception as e:
-        logger.error(f"Pipeline execution failed: {e}")
+        logger.error(f"Pipeline execution failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Pipeline error: {e}")
 
     return TicketResponse(
@@ -105,8 +116,9 @@ async def get_ticket_status(ticket_id: str):
         outcome_res = supabase.table("ticket_outcomes").select("resolution, signal_a, signal_b, signal_c").eq("ticket_id", ticket_id).execute()
         outcome = outcome_res.data[0] if outcome_res.data else None
         
-        audit_res = supabase.table("audit_log").select("latency_ms").eq("ticket_id", ticket_id).order("created_at", desc=True).limit(1).execute()
-        latency = audit_res.data[0]["latency_ms"] if audit_res.data else None
+        audit_res = supabase.table("audit_log").select("latency_ms, evidence_card").eq("ticket_id", ticket_id).order("created_at", desc=True).limit(1).execute()
+        audit = audit_res.data[0] if audit_res.data else None
+        latency = audit["latency_ms"] if audit else None
         
         return {
             "ticket_id": ticket_id,
@@ -117,6 +129,7 @@ async def get_ticket_status(ticket_id: str):
             "resolved_at": ticket.get("resolved_at"),
             "resolution": outcome["resolution"] if outcome else None,
             "decision_latency_ms": latency,
+            "evidence_card": audit["evidence_card"] if audit else None,
         }
     except HTTPException:
         raise
