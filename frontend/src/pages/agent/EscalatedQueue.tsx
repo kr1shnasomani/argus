@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { getEscalatedTickets } from "@/services/agent";
 import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, ShieldCheck, ArrowRight, Inbox, Radio } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, ShieldCheck, ArrowRight, Inbox, Radio, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { QueueSkeleton } from "@/components/ui/skeleton-loaders";
 
@@ -17,6 +20,9 @@ const row = {
 
 export const EscalatedQueue = () => {
   const navigate = useNavigate();
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [waitingFilter, setWaitingFilter] = useState<string>("all");
+  const [urgentFilter, setUrgentFilter] = useState<boolean>(false);
 
   const { data: tickets, isLoading, isError } = useQuery({
     queryKey: ["agent-queue"],
@@ -32,9 +38,36 @@ export const EscalatedQueue = () => {
     return `${hours}h ${minutes % 60}m ago`;
   };
 
+  const getMinutesWaiting = (dateString: string) => {
+    const diff = new Date().getTime() - new Date(dateString).getTime();
+    return Math.floor(diff / 60000);
+  };
+
   const getEscalationReason = (ticket: { escalation_reason?: string | null; evidence_card?: { escalation_reason?: string } }) => {
     return ticket.escalation_reason || ticket.evidence_card?.escalation_reason || "Escalated by policy gate";
   };
+
+  const filteredTickets = useMemo(() => {
+    if (!tickets) return [];
+    
+    return tickets.filter(ticket => {
+      // Severity filter
+      if (severityFilter !== "all" && ticket.severity !== severityFilter) return false;
+      
+      // Waiting time filter
+      if (waitingFilter !== "all") {
+        const minutesWaiting = getMinutesWaiting(ticket.created_at);
+        if (waitingFilter === "30min" && minutesWaiting > 30) return false;
+        if (waitingFilter === "1hour" && minutesWaiting > 60) return false;
+        if (waitingFilter === "1day" && minutesWaiting > 1440) return false;
+      }
+      
+      // Urgent filter
+      if (urgentFilter && !ticket.is_urgent) return false;
+      
+      return true;
+    });
+  }, [tickets, severityFilter, waitingFilter, urgentFilter]);
 
   return (
     <motion.div
@@ -53,7 +86,7 @@ export const EscalatedQueue = () => {
             Tickets requiring human review — sorted by priority
           </p>
         </div>
-        {tickets && tickets.length > 0 && (
+        {filteredTickets && filteredTickets.length > 0 && (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -66,8 +99,60 @@ export const EscalatedQueue = () => {
             }}
           >
             <Radio size={14} className="animate-pulse" />
-            {tickets.length} Pending
+            {filteredTickets.length} Pending
           </motion.div>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div 
+        className="flex gap-3 flex-wrap items-center p-4 rounded-xl border"
+        style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}
+      >
+        <Select value={severityFilter} onValueChange={setSeverityFilter}>
+          <SelectTrigger className="w-[160px] h-9" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectValue placeholder="Severity" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectItem value="all">All Severities</SelectItem>
+            <SelectItem value="P1">P1 (Critical)</SelectItem>
+            <SelectItem value="P2">P2 (High)</SelectItem>
+            <SelectItem value="P3">P3 (Medium)</SelectItem>
+            <SelectItem value="P4">P4 (Low)</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={waitingFilter} onValueChange={setWaitingFilter}>
+          <SelectTrigger className="w-[160px] h-9" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectValue placeholder="Waiting" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="30min">Last 30 min</SelectItem>
+            <SelectItem value="1hour">Last 1 hour</SelectItem>
+            <SelectItem value="1day">Last 24 hours</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button
+          onClick={() => setUrgentFilter(!urgentFilter)}
+          variant={urgentFilter ? "default" : "outline"}
+          className={`h-9 ${urgentFilter ? 'border-0 text-white' : ''}`}
+          style={urgentFilter ? { background: 'var(--argus-red)' } : { borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}
+        >
+          {urgentFilter ? '✓ Urgent Only' : 'Urgent'}
+        </Button>
+
+        {(severityFilter !== 'all' || waitingFilter !== 'all' || urgentFilter) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSeverityFilter('all'); setWaitingFilter('all'); setUrgentFilter(false); }}
+            style={{ color: 'var(--argus-text-muted)' }}
+          >
+            <X size={14} className="mr-1" />
+            Clear
+          </Button>
         )}
       </div>
 
@@ -104,7 +189,7 @@ export const EscalatedQueue = () => {
             <p className="text-sm font-medium" style={{ color: 'var(--argus-red)' }}>Failed to load the escalated queue.</p>
             <p className="text-xs" style={{ color: 'var(--argus-text-muted)' }}>Please check your connection and try again.</p>
           </div>
-        ) : !tickets || tickets.length === 0 ? (
+        ) : !filteredTickets || filteredTickets.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -118,17 +203,17 @@ export const EscalatedQueue = () => {
               <Inbox size={28} style={{ color: 'var(--argus-emerald)' }} />
             </div>
             <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--argus-text-primary)' }}>
-              Queue is Empty
+              {tickets && tickets.length === 0 ? 'Queue is Empty' : 'No tickets match filters'}
             </h3>
             <p className="text-sm max-w-xs" style={{ color: 'var(--argus-text-muted)' }}>
-              All tickets have been resolved or are being auto-processed. You're fully caught up!
+              {tickets && tickets.length === 0 ? 'All tickets have been resolved or are being auto-processed. You\'re fully caught up!' : 'Try adjusting your filter criteria.'}
             </p>
           </motion.div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
-                {['Ticket ID', 'Description', 'Category', 'Severity', 'Escalation Reason', 'Waiting'].map(h => (
+                {['Ticket ID', 'Description', 'Category', 'Severity', 'Urgent', 'Escalation Reason', 'Waiting'].map(h => (
                   <TableHead 
                     key={h}
                     className="text-[11px] font-semibold uppercase tracking-wider py-3"
@@ -141,7 +226,7 @@ export const EscalatedQueue = () => {
               </TableRow>
             </TableHeader>
             <motion.tbody variants={stagger} initial="hidden" animate="show">
-              {tickets.map((ticket) => (
+              {filteredTickets.map((ticket) => (
                 <motion.tr
                   key={ticket.ticket_id}
                   variants={row}
@@ -191,6 +276,16 @@ export const EscalatedQueue = () => {
                         VIP
                       </span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    {ticket.is_urgent ? (
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                        style={{ background: 'var(--argus-red)', color: '#fff' }}
+                      >
+                        URGENT
+                      </span>
+                    ) : null}
                   </TableCell>
                   <TableCell className="max-w-[200px]">
                     <div className="flex items-start gap-1.5">

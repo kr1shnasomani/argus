@@ -1,13 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { getAllTickets } from "@/services/agent";
 import { Table, TableCell, TableHead, TableHeader, TableRow, TableBody } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { QueueSkeleton } from "@/components/ui/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
+import { X, Lock } from "lucide-react";
 
 export const TicketHistory = () => {
   const navigate = useNavigate();
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
 
   const { data: tickets, isLoading, isError } = useQuery({
     queryKey: ["agent-all-tickets"],
@@ -20,6 +27,36 @@ export const TicketHistory = () => {
       month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
+
+  const getDaysAgo = (dateString: string) => {
+    const ticketDate = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - ticketDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const filteredTickets = useMemo(() => {
+    if (!tickets) return [];
+    
+    return tickets.filter(ticket => {
+      // Severity filter
+      if (severityFilter !== "all" && ticket.severity !== severityFilter) return false;
+      
+      // Status filter
+      if (statusFilter !== "all" && ticket.status !== statusFilter) return false;
+      
+      // Date filter
+      if (dateFilter !== "all") {
+        const daysAgo = getDaysAgo(ticket.created_at);
+        if (dateFilter === "today" && daysAgo > 1) return false;
+        if (dateFilter === "week" && daysAgo > 7) return false;
+        if (dateFilter === "month" && daysAgo > 30) return false;
+      }
+      
+      return true;
+    });
+  }, [tickets, severityFilter, statusFilter, dateFilter]);
 
   return (
     <motion.div
@@ -37,6 +74,62 @@ export const TicketHistory = () => {
         </div>
       </div>
 
+      {/* Filters */}
+      <div 
+        className="flex gap-3 flex-wrap items-center p-4 rounded-xl border"
+        style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}
+      >
+        <Select value={severityFilter} onValueChange={setSeverityFilter}>
+          <SelectTrigger className="w-[160px] h-9" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectValue placeholder="Severity" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectItem value="all">All Severities</SelectItem>
+            <SelectItem value="P1">P1 (Critical)</SelectItem>
+            <SelectItem value="P2">P2 (High)</SelectItem>
+            <SelectItem value="P3">P3 (Medium)</SelectItem>
+            <SelectItem value="P4">P4 (Low)</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px] h-9" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="auto_resolved">Auto Resolved</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="escalated">Escalated</SelectItem>
+            <SelectItem value="processing">Processing</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={dateFilter} onValueChange={setDateFilter}>
+          <SelectTrigger className="w-[160px] h-9" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectValue placeholder="Date" />
+          </SelectTrigger>
+          <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
+            <SelectItem value="all">All Time</SelectItem>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="week">This Week</SelectItem>
+            <SelectItem value="month">This Month</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {(severityFilter !== 'all' || statusFilter !== 'all' || dateFilter !== 'all') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSeverityFilter('all'); setStatusFilter('all'); setDateFilter('all'); }}
+            style={{ color: 'var(--argus-text-muted)' }}
+          >
+            <X size={14} className="mr-1" />
+            Clear
+          </Button>
+        )}
+      </div>
+
       <div className="rounded-xl border bg-card/50 backdrop-blur-xl overflow-hidden shadow-sm">
         {isLoading ? (
           <QueueSkeleton />
@@ -44,10 +137,10 @@ export const TicketHistory = () => {
           <div className="p-8 text-center text-destructive">
             Failed to load ticket history. Please check your connection.
           </div>
-        ) : !tickets || tickets.length === 0 ? (
+        ) : !filteredTickets || filteredTickets.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center">
-            <h4 className="text-lg font-medium text-foreground mb-1">No tickets found</h4>
-            <p className="max-w-sm">No tickets have been recorded in the system yet.</p>
+            <h4 className="text-lg font-medium text-foreground mb-1">{tickets && tickets.length === 0 ? 'No tickets found' : 'No tickets match filters'}</h4>
+            <p className="max-w-sm">{tickets && tickets.length === 0 ? 'No tickets have been recorded in the system yet.' : 'Try adjusting your filter criteria.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -60,10 +153,11 @@ export const TicketHistory = () => {
                   <TableHead>Description</TableHead>
                   <TableHead className="w-[100px]">Severity</TableHead>
                   <TableHead className="w-[120px] text-right">Status</TableHead>
+                  <TableHead className="w-[100px] text-center">Audit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tickets.map((t) => (
+                {filteredTickets.map((t) => (
                   <TableRow 
                     key={t.id}
                     className="cursor-pointer group hover:bg-muted/50 transition-colors"
@@ -93,14 +187,38 @@ export const TicketHistory = () => {
                     <TableCell className="text-right">
                       <Badge variant={
                           t.status === "resolved" || t.status === "auto_resolved" ? "default" :
-                          t.status === "escalated" ? "destructive" : "secondary"
+                          t.status === "escalated" ? "secondary" : "secondary"
                         }
                         className={
-                          t.status === "resolved" || t.status === "auto_resolved" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20" : ""
+                          t.status === "resolved" || t.status === "auto_resolved" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20" :
+                          t.status === "escalated" ? "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 border-amber-500/20" :
+                          ""
                         }
                       >
                         {t.status.replace('_', ' ')}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-center relative group">
+                      {t.audit_log ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Lock size={14} className="text-emerald-600" />
+                          <span className="text-xs font-medium text-emerald-600">Verified</span>
+                          {/* Tooltip */}
+                          <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                            <div className="font-mono text-[10px]">
+                              SHA-256: {t.audit_log.audit_hash?.slice(0, 16)}...
+                            </div>
+                            <div className="text-[10px] text-slate-300">
+                              {new Date(t.audit_log.created_at).toLocaleString(undefined, {
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                              })}
+                            </div>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

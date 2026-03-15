@@ -16,9 +16,9 @@ from datetime import datetime
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-from services.supabase import get_supabase
-from services.qdrant import get_qdrant_client
-from core.pipeline import process_ticket
+from backend.services.supabase import get_supabase
+from backend.services.qdrant import get_qdrant_client
+from backend.core.pipeline import process_ticket
 
 
 @dataclass

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { SimulationResponse } from "@/types";
 
 export const getThresholds = async (category?: string) => {
   const url = category ? `/config/thresholds/${category}` : "/config/thresholds";
@@ -11,7 +12,16 @@ export const getSystems = async () => {
   return data;
 };
 
-export const simulate = async (params: any) => {
-  const { data } = await api.post("/simulate", params);
+export type SimulationRequestPayload = {
+  description: string;
+  user_tier: "standard" | "vip" | "contractor";
+  severity: "P1" | "P2" | "P3" | "P4";
+  system_id: string;
+  active_incident_override: boolean;
+  change_freeze_override: boolean;
+};
+
+export const simulate = async (params: SimulationRequestPayload): Promise<SimulationResponse> => {
+  const { data } = await api.post<SimulationResponse>("/simulate", params);
   return data;
 };

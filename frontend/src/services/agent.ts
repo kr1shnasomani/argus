@@ -18,6 +18,19 @@ export const resolveTicket = async (resolution: AgentResolution): Promise<{ stat
   return data;
 };
 
+export const submitCorrection = async (ticketId: string, correctedResolution: string, resolution_type: string): Promise<any> => {
+  const { data } = await api.patch(`/tickets/${ticketId}/correction`, {
+    corrected_resolution: correctedResolution,
+    resolution_type,
+  });
+  return data;
+};
+
+export const markAgentVerified = async (ticketId: string): Promise<any> => {
+  const { data } = await api.post(`/tickets/${ticketId}/verify`);
+  return data;
+};
+
 export const getAllTickets = async (): Promise<import("@/types").TicketHistoryRow[]> => {
   const { data } = await api.get<import("@/types").TicketHistoryRow[]>("/tickets/agent/all");
   return data;

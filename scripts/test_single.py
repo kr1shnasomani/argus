@@ -14,8 +14,8 @@ from typing import Dict, Any
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-from services.supabase import get_supabase
-from core.pipeline import process_ticket
+from backend.services.supabase import get_supabase
+from backend.core.pipeline import process_ticket
 
 
 class TestRunner:

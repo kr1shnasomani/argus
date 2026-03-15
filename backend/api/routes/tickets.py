@@ -17,6 +17,7 @@ async def submit_ticket(
     category: Optional[str] = Form(""),
     severity: Optional[str] = Form("P3"),
     urgent: Optional[bool] = Form(False),
+    is_urgent: Optional[bool] = Form(None),
     system_id: Optional[str] = Form(None),
     attachment: Optional[UploadFile] = File(None),
 ):
@@ -40,6 +41,7 @@ async def submit_ticket(
 
     supabase = get_supabase()
     category_clean = (category or "").strip()
+    urgent_flag = bool(is_urgent) if is_urgent is not None else bool(urgent)
 
     # Get system_name from system_id if provided
     system_name = None
@@ -73,6 +75,7 @@ async def submit_ticket(
             # DB column is NOT NULL. Keep a placeholder until pipeline auto-detects and overwrites it.
             "category": ticket["category"] or "Unclassified",
             "severity": severity,
+            "is_urgent": urgent_flag,
             "status": "processing",
             "attachment_url": attachment_url
         }

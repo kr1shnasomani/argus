@@ -13,9 +13,8 @@ const SubmitTicket = lazy(() => import('@/pages/employee/SubmitTicket').then((m)
 const TicketStatus = lazy(() => import('@/pages/employee/TicketStatus').then((m) => ({ default: m.TicketStatus })));
 const EscalatedQueue = lazy(() => import('@/pages/agent/EscalatedQueue').then((m) => ({ default: m.EscalatedQueue })));
 const EvidenceCardView = lazy(() => import('@/pages/agent/EvidenceCardView').then((m) => ({ default: m.EvidenceCardView })));
-const WhatIfSimulator = lazy(() => import('@/pages/agent/WhatIfSimulator').then((m) => ({ default: m.WhatIfSimulator })));
+const WhatIfSimulator = lazy(() => import('@/pages/agent/WhatIfSimulator'));
 const MetricsDashboard = lazy(() => import('@/pages/agent/MetricsDashboard').then((m) => ({ default: m.MetricsDashboard })));
-const AuditLog = lazy(() => import('@/pages/agent/AuditLog').then((m) => ({ default: m.AuditLog })));
 const TicketHistory = lazy(() => import('@/pages/agent/TicketHistory').then((m) => ({ default: m.TicketHistory })));
 
 const queryClient = new QueryClient({
@@ -50,7 +49,6 @@ function App() {
                 <Route path="ticket/:id" element={<EvidenceCardView />} />
                 <Route path="metrics" element={<MetricsDashboard />} />
                 <Route path="simulator" element={<WhatIfSimulator />} />
-                <Route path="audit" element={<AuditLog />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

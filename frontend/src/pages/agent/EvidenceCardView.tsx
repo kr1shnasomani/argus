@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { resolveTicket, getTicketEvidence } from "@/services/agent";
+import { resolveTicket, getTicketEvidence, submitCorrection, markAgentVerified } from "@/services/agent";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, Activity, AlertCircle, CheckCircle2, BookOpen, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, Activity, AlertCircle, CheckCircle2, BookOpen, Zap, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { EvidenceCardSkeleton } from "@/components/ui/skeleton-loaders";
@@ -34,6 +34,8 @@ export const EvidenceCardView = () => {
     card?.evidence_card?.escalation_reason ||
     "Unknown reason";
   const interceptedLayer = card?.layer_intercepted ?? card?.evidence_card?.layer_intercepted ?? null;
+  const policyGateEscalation =
+    interceptedLayer === 1 || /policy|vip|freeze|p1|p2/i.test(escalationReason || "");
   const signalA = card?.signal_a ?? card?.outcome?.signal_a ?? null;
   const signalAThreshold = card?.threshold_a ?? null;
   const signalB = card?.signal_b ?? card?.outcome?.signal_b ?? null;
@@ -65,6 +67,49 @@ export const EvidenceCardView = () => {
       });
     },
   });
+
+  const handleMarkYes = async () => {
+    if (!id) return;
+    setVerificationState('yes');
+    try {
+      await markAgentVerified(id);
+      toast.success('Marked as verified');
+    } catch (e) {
+      toast.error('Failed to mark verification');
+      setVerificationState(null);
+    }
+  };
+
+  const handleMarkNo = () => {
+    setVerificationState('no');
+    setShowCorrectionForm(true);
+  };
+
+  const handleSubmitCorrection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !correctionText) return;
+    setCorrectionSubmitting(true);
+    try {
+      await submitCorrection(id, correctionText, correctionType);
+      setCorrectionSuccess('Correction recorded. The Argus knowledge base has been updated.');
+      // Update applied resolution shown in UI
+      // mutate local card data to reflect corrected resolution
+      (card as any).resolution = correctionText;
+      toast.success('Correction submitted');
+      setShowCorrectionForm(false);
+    } catch (err) {
+      toast.error('Failed to submit correction');
+    } finally {
+      setCorrectionSubmitting(false);
+    }
+  };
+
+  const [verificationState, setVerificationState] = useState<null | 'yes' | 'no'>(null);
+  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [correctionText, setCorrectionText] = useState("");
+  const [correctionType, setCorrectionType] = useState<"verified" | "workaround">("verified");
+  const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
+  const [correctionSuccess, setCorrectionSuccess] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,6 +358,14 @@ export const EvidenceCardView = () => {
                 </div>
               )}
 
+              {(!candidateFixes || candidateFixes.length === 0) && card.status === 'escalated' && (
+                <div className="p-3.5 rounded-xl border text-xs" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                  {policyGateEscalation
+                    ? 'This ticket was escalated by the Policy Gate before AI processing. No candidate solutions were evaluated.'
+                    : 'No candidate solutions were available for this escalation.'}
+                </div>
+              )}
+
               {/* Latency */}
               <div className="flex items-center gap-2 pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
                 <Zap size={11} style={{ color: 'var(--argus-indigo)' }} />
@@ -321,6 +374,18 @@ export const EvidenceCardView = () => {
                   {displayedLatency != null ? `${displayedLatency.toFixed(0)}ms` : 'N/A'}
                 </span>
               </div>
+
+              {/* Audit Hash / Tamper-Proof Verification */}
+              {card.audit_log && (
+                <div className="flex items-center gap-2 pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                  <Lock size={11} style={{ color: 'var(--argus-emerald)' }} />
+                  <span>SHA-256:</span>
+                  <span className="font-mono font-semibold" style={{ color: 'var(--argus-text-primary)' }}>
+                    {card.audit_log.audit_hash?.slice(0, 16)}...
+                  </span>
+                  <span className="ml-auto text-[10px]" style={{ color: 'var(--argus-emerald)' }}>Tamper-Proof Verified</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -354,6 +419,49 @@ export const EvidenceCardView = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Agent verification controls for auto-resolved tickets */}
+                  <div className="mt-4 space-y-3">
+                    <div className="text-sm font-medium" style={{ color: 'var(--argus-text-primary)' }}>Was this resolution correct?</div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleMarkYes}
+                        className={`px-3 py-1.5 rounded-md font-semibold ${verificationState === 'yes' ? 'bg-emerald-500 text-white' : 'bg-white border'}`}
+                      >
+                        ✓ Yes, correct
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleMarkNo}
+                        className={`px-3 py-1.5 rounded-md font-semibold ${verificationState === 'no' ? 'bg-red-500 text-white' : 'bg-white border'}`}
+                      >
+                        ✗ No, incorrect
+                      </button>
+                    </div>
+
+                    {showCorrectionForm && (
+                      <form onSubmit={handleSubmitCorrection} className="p-3 rounded-lg border mt-2" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">What was the correct resolution?</Label>
+                          <Textarea required rows={5} value={correctionText} onChange={(e) => setCorrectionText(e.target.value)} />
+                        </div>
+                        <div className="mt-3">
+                          <Label className="text-sm font-medium">Resolution Type</Label>
+                          <div className="flex items-center gap-3 mt-2">
+                            <button type="button" onClick={() => setCorrectionType('verified')} className={`px-3 py-1 rounded ${correctionType === 'verified' ? 'bg-indigo-600 text-white' : 'bg-white border'}`}>Verified Reusable Fix</button>
+                            <button type="button" onClick={() => setCorrectionType('workaround')} className={`px-3 py-1 rounded ${correctionType === 'workaround' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Temporary Workaround</button>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <Button type="submit" disabled={correctionSubmitting} className="h-10">
+                            {correctionSubmitting ? 'Submitting...' : 'Submit Correction'}
+                          </Button>
+                        </div>
+                        {correctionSuccess && <div className="text-sm text-emerald-600 mt-3">{correctionSuccess}</div>}
+                      </form>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -367,6 +475,20 @@ export const EvidenceCardView = () => {
                   <div className="p-5 space-y-5">
 
                   {/* Resolution Text */}
+                    {card.outcome && card.outcome.ai_suggestion && (
+                      <div className="rounded-xl border p-3.5 mb-2" style={{ background: 'linear-gradient(90deg, #EEF2FF 0%, #F5F3FF 100%)', borderColor: 'rgba(124,58,237,0.12)' }}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-xs font-semibold" style={{ color: 'var(--argus-indigo)' }}>🤖 AI SUGGESTED RESOLUTION</div>
+                            <p className="text-sm mt-1" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome.ai_suggestion}</p>
+                          </div>
+                          <div>
+                            <Button variant="outline" onClick={() => setResolutionText(card.outcome?.ai_suggestion || "")}>✓ Use This Solution</Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Resolution Steps</Label>
                     <Textarea

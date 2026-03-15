@@ -26,9 +26,6 @@ async def get_escalated_tickets():
         if not tickets:
             return []
 
-        # Severity priority mapping
-        severity_order = {"P1": 0, "P2": 1, "P3": 2, "P4": 3}
-
         # For each ticket, fetch the latest evidence card from audit_log
         enriched = []
         for t in tickets:
@@ -58,8 +55,8 @@ async def get_escalated_tickets():
                 "escalation_reason": outcome["escalation_reason"] if outcome else None,
             })
 
-        # Sort by severity then created_at
-        enriched.sort(key=lambda x: (severity_order.get(x.get("severity", "P4"), 9), x.get("created_at", "")))
+        # Sort by urgency then created_at (oldest first)
+        enriched.sort(key=lambda x: (0 if x.get("is_urgent") else 1, x.get("created_at", "")))
 
         return enriched
 
@@ -91,6 +88,7 @@ async def get_ticket_evidence(ticket_id: str):
 
         evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else None
         latency_ms = audit_res.data[0]["latency_ms"] if audit_res.data else None
+        audit_log = audit_res.data[0] if audit_res.data else None
 
         # Fetch outcome data for signals and escalation context
         outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
@@ -160,6 +158,7 @@ async def get_ticket_evidence(ticket_id: str):
             "evidence_card": evidence_card,
             "decision_latency_ms": latency_ms,
             "outcome": outcome,
+            "audit_log": audit_log,
             "candidate_fixes": candidate_fixes,
             "resolution_applied": (outcome.get("resolution") if outcome else None) or (evidence_card.get("resolution_applied") if isinstance(evidence_card, dict) else None),
             "sandbox_passed": outcome.get("sandbox_passed") if outcome else None,
@@ -301,10 +300,95 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/{ticket_id}/verify")
+async def verify_auto_resolution(ticket_id: str):
+    """
+    Mark an auto-resolved ticket as verified by an agent.
+    """
+    supabase = get_supabase()
+    try:
+        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        if not outcome_res.data:
+            raise HTTPException(status_code=404, detail="Ticket outcome not found.")
+
+        supabase.table("ticket_outcomes").update({"agent_verified": True}).eq("ticket_id", ticket_id).execute()
+        return {"ticket_id": ticket_id, "agent_verified": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to mark agent_verified for {ticket_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/{ticket_id}/correction")
+async def submit_correction(ticket_id: str, payload: dict):
+    """
+    Agent submits a corrected resolution for an auto-resolved ticket.
+    Expects JSON: { corrected_resolution: str, resolution_type: 'verified'|'workaround' }
+    """
+    from services.jina import generate_embedding
+    from services.qdrant import upsert_ticket as qdrant_upsert
+
+    supabase = get_supabase()
+    try:
+        corrected = payload.get("corrected_resolution")
+        resolution_type = payload.get("resolution_type", "workaround")
+        if not corrected or not isinstance(corrected, str):
+            raise HTTPException(status_code=400, detail="corrected_resolution is required")
+
+        # fetch existing outcome to preserve original AI resolution
+        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        if not outcome_res.data:
+            raise HTTPException(status_code=404, detail="Ticket outcome not found.")
+        outcome = outcome_res.data[0]
+
+        original_ai = outcome.get("resolution") or outcome.get("ai_suggestion")
+
+        # update outcome: set ai_suggestion to the original AI resolution, write corrected resolution
+        supabase.table("ticket_outcomes").update({
+            "ai_suggestion": original_ai,
+            "resolution": corrected,
+            "retrospective_match": False,
+            "agent_verified": True,
+            "override_reason": "Incorrect auto-resolution — agent corrected"
+        }).eq("ticket_id", ticket_id).execute()
+
+        # If agent marked as verified reusable, upsert into Qdrant so AI learns the corrected fix
+        if resolution_type == "verified":
+            try:
+                # embed ticket description (prefer description from tickets table)
+                ticket_res = supabase.table("tickets").select("description, category, severity").eq("id", ticket_id).execute()
+                ticket = ticket_res.data[0] if ticket_res.data else {"description": ""}
+                vector = await generate_embedding(ticket.get("description", ""))
+                payload = {
+                    "category": ticket.get("category"),
+                    "description": ticket.get("description"),
+                    "resolution": corrected,
+                    "resolution_cluster": outcome.get("resolution_cluster") or "agent_verified",
+                    "severity": ticket.get("severity"),
+                    "auto_resolved": False,
+                    "verified": True,
+                }
+                await qdrant_upsert(ticket_id=ticket_id, vector=vector, payload=payload)
+            except Exception as e:
+                logger.warning(f"Qdrant upsert during correction failed: {e}")
+
+        # Log to audit for traceability
+        log_to_audit(ticket_id, "AGENT_CORRECTION", {"corrected_resolution": corrected, "resolution_type": resolution_type}, supabase)
+
+        return {"ticket_id": ticket_id, "status": "correction_recorded"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to submit correction for {ticket_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/agent/all")
 async def get_all_tickets():
     """
     Returns history of all tickets allowing admins to see what Argus resolved vs escalated.
+    Includes audit_log data for verification status display.
     """
     supabase = get_supabase()
     try:
@@ -315,8 +399,21 @@ async def get_all_tickets():
         tickets = tickets_res.data
         if not tickets:
             return []
+        
+        # Enrich each ticket with audit_log if it exists
+        enriched = []
+        for t in tickets:
+            audit_res = supabase.table("audit_log") \
+                .select("audit_hash, created_at") \
+                .eq("ticket_id", t["id"]) \
+                .order("created_at", desc=True) \
+                .limit(1) \
+                .execute()
             
-        return tickets
+            audit_log = audit_res.data[0] if audit_res.data else None
+            enriched.append({**t, "audit_log": audit_log})
+            
+        return enriched
     except Exception as e:
         logger.error(f"Failed to fetch all tickets: {e}")
         raise HTTPException(status_code=500, detail=str(e))

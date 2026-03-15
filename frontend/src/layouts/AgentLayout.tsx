@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layers, LayoutDashboard, Activity, Terminal, Sun, Moon, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
+import { Layers, LayoutDashboard, Terminal, Sun, Moon, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
@@ -34,7 +34,6 @@ export const AgentLayout = () => {
     { name: 'All Tickets', path: '/agent/history', icon: Archive, desc: 'Ticket history', count: null },
     { name: 'Metrics', path: '/agent/metrics', icon: LayoutDashboard, desc: 'System telemetry', count: null },
     { name: 'Simulator', path: '/agent/simulator', icon: Terminal, desc: 'What-if engine', count: null },
-    { name: 'Audit Log', path: '/agent/audit', icon: Activity, desc: 'Hash chain', count: null },
   ];
 
   const activePathFallback = location.state?.from || '/agent';
@@ -71,26 +70,10 @@ export const AgentLayout = () => {
               <div className="flex items-center gap-1.5">
                 <span 
                   className="font-bold text-[15px] tracking-tight"
-                  style={{ color: 'var(--argus-text-primary)', fontFamily: 'DM Sans' }}
+                  style={{ color: 'var(--argus-text-primary)' }}
                 >
                   ARGUS
                 </span>
-                <span 
-                  className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
-                  style={{ 
-                    background: 'linear-gradient(135deg, rgba(79,70,229,0.15), rgba(124,58,237,0.15))',
-                    color: 'var(--argus-indigo)',
-                    border: '1px solid rgba(79,70,229,0.2)'
-                  }}
-                >
-                  Agent
-                </span>
-              </div>
-              <div 
-                className="text-[10px] font-medium leading-none mt-0.5"
-                style={{ color: 'var(--argus-text-muted)' }}
-              >
-                Neural Engine v1.0
               </div>
             </div>
           </div>
@@ -102,10 +85,7 @@ export const AgentLayout = () => {
             className="flex items-center gap-2 px-3 py-2 rounded-lg"
             style={{ background: 'var(--argus-emerald-light)' }}
           >
-            <div className="relative">
-              <span className="status-dot online flex-shrink-0" />
-              <span className="live-indicator absolute inset-0" />
-            </div>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--argus-emerald)', flexShrink: 0 }} />
             <div className="flex-1 min-w-0">
               <div className="text-[11px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
                 All Systems Operational
@@ -250,22 +230,6 @@ export const AgentLayout = () => {
           </div>
 
           <div className="flex-1" />
-
-          {/* Live status badge */}
-          <div 
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold border"
-            style={{ 
-              background: 'var(--argus-emerald-light)',
-              color: 'var(--argus-emerald)',
-              borderColor: 'rgba(5, 150, 105, 0.2)'
-            }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: 'var(--argus-emerald)' }} />
-              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--argus-emerald)' }} />
-            </span>
-            Live
-          </div>
         </header>
 
         {/* Page Content */}

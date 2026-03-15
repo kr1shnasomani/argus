@@ -86,6 +86,10 @@ export interface EvidenceCard {
   max_similarity?: number | null;
   layer_intercepted?: number | null;
   total_latency_ms?: number | null;
+  audit_log?: {
+    audit_hash: string;
+    created_at: string;
+  } | null;
 }
 
 export interface AgentQueueTicket {
@@ -94,6 +98,7 @@ export interface AgentQueueTicket {
   description: string;
   category: string;
   severity: string;
+  is_urgent?: boolean;
   created_at: string;
   status: string;
   user_tier?: string;
@@ -101,6 +106,35 @@ export interface AgentQueueTicket {
   decision_latency_ms?: number | null;
   evidence_card?: {
     escalation_reason?: string;
+  };
+}
+
+export interface SimulationStep {
+  index: number;
+  name: string;
+  status: "PASS" | "FAIL" | "SKIPPED";
+  value?: string | number | boolean | null;
+  threshold?: string | number | null;
+  details?: string | null;
+}
+
+export interface SimulationResponse {
+  layer_intercepted: number | null;
+  reason: string;
+  steps: SimulationStep[];
+  candidate_fixes: Array<{
+    ticket_id: string;
+    resolution: string;
+    similarity_score: number;
+  }>;
+  signals?: {
+    A?: number | null;
+    B?: number | null;
+    C?: number | null;
+  };
+  decision: {
+    outcome: "AUTO RESOLVED" | "HUMAN ESCALATION REQUIRED";
+    reason: string;
   };
 }
 
@@ -164,4 +198,8 @@ export interface TicketHistoryRow {
   created_at: string;
   resolved_at: string | null;
   users: { email: string } | null;
+  audit_log?: {
+    audit_hash: string;
+    created_at: string;
+  } | null;
 }
