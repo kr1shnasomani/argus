@@ -1,33 +1,10 @@
-import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layers, LayoutDashboard, Terminal, Sun, Moon, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
+import { Layers, LayoutDashboard, Terminal, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
-// Theme toggle hook
-const useTheme = () => {
-  const [isDark, setIsDark] = useState(() => 
-    document.documentElement.classList.contains('dark')
-  );
-
-  const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('argus-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('argus-theme', 'light');
-    }
-  };
-
-  return { isDark, toggle };
-};
-
 export const AgentLayout = () => {
   const location = useLocation();
-  const { isDark, toggle } = useTheme();
 
   const navItems = [
     { name: 'Escalated Queue', path: '/agent', icon: Layers, desc: 'Pending review', count: null },
@@ -177,20 +154,6 @@ export const AgentLayout = () => {
           className="p-3 border-t space-y-2"
           style={{ borderColor: 'var(--sidebar-border)' }}
         >
-          {/* Theme toggle */}
-          <button
-            onClick={toggle}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
-            style={{ 
-              background: 'var(--sidebar-hover-bg)', 
-              color: 'var(--sidebar-text)',
-              border: '1px solid var(--argus-border)',
-            }}
-          >
-            {isDark ? <Sun size={14} /> : <Moon size={14} />}
-            <span className="text-xs">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
-
           {/* Agent chip */}
           <div 
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg"

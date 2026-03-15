@@ -1,30 +1,10 @@
-import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, ArrowUpRight, Home } from 'lucide-react';
+import { ArrowUpRight, Home } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
-const useTheme = () => {
-  const [isDark, setIsDark] = useState(() => 
-    document.documentElement.classList.contains('dark')
-  );
-  const toggle = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('argus-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('argus-theme', 'light');
-    }
-  };
-  return { isDark, toggle };
-};
-
 export const EmployeeLayout = () => {
   const location = useLocation();
-  const { isDark, toggle } = useTheme();
 
   return (
     <div className="employee-portal min-h-screen flex flex-col" style={{ background: 'var(--argus-bg)' }}>
@@ -63,9 +43,6 @@ export const EmployeeLayout = () => {
               <ArrowUpRight size={12} />
             </Link>
             <div className="w-px h-4 mx-1" style={{ background: 'var(--argus-border)' }} />
-            <button onClick={toggle} className="emp-topbar-btn cursor-pointer">
-              {isDark ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
           </div>
         </div>
       </header>
