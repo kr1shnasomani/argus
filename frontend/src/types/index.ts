@@ -9,6 +9,7 @@ export interface AgentResolution {
   resolution: string;
   resolution_type: "reusable" | "workaround" | "uncertain";
   override_reason?: string | null;
+  accept_suggestion?: boolean;
 }
 
 export interface TicketSubmission {

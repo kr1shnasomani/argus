@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { resolveTicket, getTicketEvidence, submitCorrection, markAgentVerified } from "@/services/agent";
@@ -110,6 +110,15 @@ export const EvidenceCardView = () => {
   const [correctionType, setCorrectionType] = useState<"verified" | "workaround">("verified");
   const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
   const [correctionSuccess, setCorrectionSuccess] = useState<string | null>(null);
+  const [resolutionMode, setResolutionMode] = useState<"accept" | "override">("override");
+
+  // Pre-fill resolution textarea with AI suggestion for escalated tickets
+  const aiSuggestion = card?.outcome?.ai_suggestion;
+  useEffect(() => {
+    if (card?.status === "escalated" && aiSuggestion && !resolutionText) {
+      setResolutionText(aiSuggestion);
+    }
+  }, [card?.status, aiSuggestion]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +129,27 @@ export const EvidenceCardView = () => {
       resolution_type: resolutionType,
       override_reason: overrideReason || null,
     });
+  };
+
+  const handleAcceptAiResolution = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !aiSuggestion) return;
+    setResolutionText(aiSuggestion);
+    setResolutionMode("accept");
+    resolveMutation.mutate({
+      ticket_id: id,
+      resolution: aiSuggestion,
+      resolution_type: "verified",
+      override_reason: null,
+      accept_suggestion: true,
+    });
+  };
+
+  const handleSubmitDifferentResolution = (e: React.FormEvent) => {
+    e.preventDefault();
+    setResolutionMode("override");
+    setResolutionText("");
+    setOverrideReason("");
   };
 
   if (isLoading) {
@@ -323,48 +353,163 @@ export const EvidenceCardView = () => {
                 </div>
               </div>
 
-              {/* Candidate Fixes */}
-              {candidateFixes && candidateFixes.length > 0 && (
-                <div>
-                  <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--argus-text-muted)' }}>
-                    <BookOpen size={12} /> Candidate Solutions
-                  </h4>
-                  <div className="space-y-2">
-                    {candidateFixes.slice(0, 3).map((fix, idx) => (
-                      <motion.div
-                        key={idx}
-                        className="candidate-fix p-3.5 rounded-xl border cursor-pointer"
-                        style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}
-                        onClick={() => setResolutionText(fix.resolution)}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.08, duration: 0.3 }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <div className="flex justify-between items-center mb-1.5">
-                          <span className="font-mono text-xs font-medium" style={{ color: 'var(--argus-indigo)' }}>#{(fix.ticket_id || 'N/A').substring(0, 8)}</span>
-                          <span className="text-[10px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
-                            {typeof (fix as any).similarity_score === 'number'
-                              ? `${(((fix as any).similarity_score as number) * 100).toFixed(1)}% match`
-                              : (typeof fix.similarity === 'number' ? `${(fix.similarity * 100).toFixed(1)}% match` : 'match n/a')}
-                          </span>
-                        </div>
-                        <p className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>{fix.resolution}</p>
-                        <p className="text-[10px] mt-1.5 text-right" style={{ color: 'var(--argus-text-muted)' }}>↑ Click to apply</p>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* How Argus Decided — Explainable AI Panel */}
+              <div>
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--argus-text-muted)' }}>
+                  <Activity size={12} /> How Argus Decided
+                </h4>
 
-              {(!candidateFixes || candidateFixes.length === 0) && card.status === 'escalated' && (
-                <div className="p-3.5 rounded-xl border text-xs" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
-                  {policyGateEscalation
-                    ? 'This ticket was escalated by the Policy Gate before AI processing. No candidate solutions were evaluated.'
-                    : 'No candidate solutions were available for this escalation.'}
+                {/* Signal A/B/C Breakdown */}
+                {card.status === "auto_resolved" || signalA != null || signalB != null || signalC != null ? (
+                  <div className="space-y-2.5 mb-4">
+                    {/* Signal A */}
+                    {signalA != null && signalAThreshold != null && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal A — Semantic Similarity</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
+                              {signalA.toFixed(3)}
+                            </span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalA >= signalAThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                              {signalA >= signalAThreshold ? 'PASS' : 'FAIL'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, (signalA / (signalAThreshold * 2)) * 100)}%`,
+                              background: signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalAThreshold.toFixed(2)} · found similar past incident</p>
+                      </div>
+                    )}
+
+                    {/* Signal B */}
+                    {signalB != null && signalBThreshold != null && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal B — Resolution Consistency</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
+                              {signalB.toFixed(3)}
+                            </span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalB >= signalBThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                              {signalB >= signalBThreshold ? 'PASS' : 'FAIL'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, (signalB / (signalBThreshold * 2)) * 100)}%`,
+                              background: signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalBThreshold.toFixed(2)} · cluster pattern confirmed</p>
+                      </div>
+                    )}
+
+                    {/* Signal C */}
+                    {signalC != null && signalCThreshold != null && (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal C — Category Accuracy</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
+                              {signalC.toFixed(3)}
+                            </span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalC >= signalCThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                              {signalC >= signalCThreshold ? 'PASS' : 'FAIL'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, (signalC / (signalCThreshold * 2)) * 100)}%`,
+                              background: signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalCThreshold.toFixed(2)} · category label verified</p>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {/* Why This Decision */}
+                <div className="rounded-xl border p-3.5" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--argus-text-muted)' }}>Why This Decision</p>
+                  <p className="text-xs leading-relaxed" style={{ color: 'var(--argus-text-primary)' }}>
+                    {card.status === 'auto_resolved'
+                      ? 'All three confidence signals exceeded their thresholds and sandbox tests passed. Argus executed the most-similar past resolution automatically.'
+                      : policyGateEscalation
+                      ? 'The Policy Gate escalated this ticket before AI processing — likely due to VIP tier, P1/P2 severity, or a policy-matched keyword.'
+                      : interceptedLayer === 2
+                      ? 'The Vector DB Novelty Check detected insufficient similarity to known resolutions. Escalated to human for a novel approach.'
+                      : interceptedLayer === 3
+                      ? `Signal A (Semantic Similarity) fell below its threshold (${signalA?.toFixed(3) ?? '?'} < ${signalAThreshold?.toFixed(2) ?? '?'}). No closely matching past incidents.`
+                      : interceptedLayer === 4
+                      ? `Signal B (Resolution Consistency) fell below threshold (${signalB?.toFixed(3) ?? '?'} < ${signalBThreshold?.toFixed(2) ?? '?'}). Inconsistent resolution pattern in cluster.`
+                      : interceptedLayer === 5
+                      ? `Signal C (Category Accuracy) fell below threshold (${signalC?.toFixed(3) ?? '?'} < ${signalCThreshold?.toFixed(2) ?? '?'}). Ticket may be miscategorized.`
+                      : interceptedLayer === 6
+                      ? 'Sandbox validation failed. The proposed resolution did not execute successfully in the isolated test environment.'
+                      : escalationReason || 'Escalated due to insufficient confidence signals or sandbox failure. Agent review required.'}
+                  </p>
                 </div>
-              )}
+
+                {/* Top 3 Similar Past Incidents */}
+                {candidateFixes && candidateFixes.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: 'var(--argus-text-muted)' }}>
+                      <BookOpen size={11} /> Similar Past Incidents
+                    </p>
+                    <div className="space-y-2">
+                      {candidateFixes.slice(0, 3).map((fix, idx) => (
+                        <motion.div
+                          key={idx}
+                          className="candidate-fix p-3 rounded-xl border cursor-pointer"
+                          style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}
+                          onClick={() => setResolutionText(fix.resolution)}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.08, duration: 0.3 }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-mono text-xs font-medium" style={{ color: 'var(--argus-indigo)' }}>#{(fix.ticket_id || 'N/A').substring(0, 8)}</span>
+                            <span className="text-[10px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
+                              {typeof (fix as any).similarity_score === 'number'
+                                ? `${(((fix as any).similarity_score as number) * 100).toFixed(1)}% match`
+                                : (typeof fix.similarity === 'number' ? `${(fix.similarity * 100).toFixed(1)}% match` : 'match n/a')}
+                            </span>
+                          </div>
+                          <p className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>{fix.resolution}</p>
+                          <p className="text-[10px] mt-1 text-right" style={{ color: 'var(--argus-text-muted)' }}>↑ Click to apply</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(!candidateFixes || candidateFixes.length === 0) && card.status === 'escalated' && (
+                  <div className="mt-3 p-3.5 rounded-xl border text-xs" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                    {policyGateEscalation
+                      ? 'Policy Gate escalated before candidate evaluation.'
+                      : 'No similar past incidents found — this appears to be a novel issue.'}
+                  </div>
+                )}
+              </div>
 
               {/* Latency */}
               <div className="flex items-center gap-2 pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
@@ -555,17 +700,63 @@ export const EvidenceCardView = () => {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    disabled={resolveMutation.isPending || !resolutionText}
-                    className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
-                  >
-                    {resolveMutation.isPending ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
-                    ) : (
-                      "Submit Resolution →"
-                    )}
-                  </Button>
+                  {/* Dual Action Buttons for Escalated Tickets */}
+                  {card.status === 'escalated' && aiSuggestion ? (
+                    <div className="space-y-2.5">
+                      <button
+                        type="button"
+                        onClick={handleAcceptAiResolution}
+                        disabled={resolveMutation.isPending}
+                        className="w-full h-11 rounded-xl font-semibold text-sm text-white border-0 transition-all duration-200 flex items-center justify-center gap-2"
+                        style={{ background: '#10B981' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#059669')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#10B981')}
+                      >
+                        {resolveMutation.isPending && resolutionMode === 'accept' ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" />Accepting...</>
+                        ) : (
+                          <><CheckCircle2 size={15} /> Accept AI Resolution</>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSubmitDifferentResolution}
+                        disabled={resolveMutation.isPending}
+                        className="w-full h-11 rounded-xl font-semibold text-sm border-2 transition-all duration-200 flex items-center justify-center gap-2"
+                        style={{ background: 'transparent', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--argus-surface-2)'; e.currentTarget.style.borderColor = 'var(--argus-indigo)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--argus-border)'; }}
+                      >
+                        <Zap size={14} /> Submit Different Resolution
+                      </button>
+                      {resolutionMode === 'override' && resolutionText && (
+                        <Button
+                          type="submit"
+                          disabled={resolveMutation.isPending || !resolutionText}
+                          className="w-full h-11 text-white font-semibold text-sm border-0"
+                          style={{ background: 'var(--argus-indigo)' }}
+                        >
+                          {resolveMutation.isPending ? (
+                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting Override...</>
+                          ) : (
+                            "Submit Override Resolution →"
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={resolveMutation.isPending || !resolutionText}
+                      className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
+                    >
+                      {resolveMutation.isPending ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
+                      ) : (
+                        "Submit Resolution →"
+                      )}
+                    </Button>
+                  )}
                 </div>
               </form>
             </div>

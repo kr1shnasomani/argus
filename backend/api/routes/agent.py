@@ -12,6 +12,7 @@ from utils.audit_hash import log_to_audit
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tickets", tags=["agent"])
 
+
 # Retry configuration for handling Supabase connection drops
 async def _retry_operation(operation, max_retries=3, base_delay=0.5):
     """Retry an operation with exponential backoff"""
@@ -21,7 +22,7 @@ async def _retry_operation(operation, max_retries=3, base_delay=0.5):
         except Exception as e:
             if attempt == max_retries - 1:
                 raise
-            delay = base_delay * (2 ** attempt)
+            delay = base_delay * (2**attempt)
             await asyncio.sleep(delay)
 
 
@@ -30,7 +31,7 @@ async def get_escalated_tickets():
     """
     Returns all escalated tickets, joined with evidence cards from audit_log,
     sorted by severity then creation time.
-    
+
     Uses batched queries to avoid N+1 problem and connection exhaustion.
     """
     supabase = get_supabase()
@@ -56,7 +57,9 @@ async def get_escalated_tickets():
             try:
                 audit_res = (
                     supabase.table("audit_log")
-                    .select("ticket_id, evidence_card, audit_hash, latency_ms, created_at")
+                    .select(
+                        "ticket_id, evidence_card, audit_hash, latency_ms, created_at"
+                    )
                     .in_("ticket_id", ticket_ids)
                     .order("created_at", desc=True)
                     .execute()
@@ -75,7 +78,9 @@ async def get_escalated_tickets():
             try:
                 outcome_res = (
                     supabase.table("ticket_outcomes")
-                    .select("ticket_id, signal_a, signal_b, signal_c, escalation_reason")
+                    .select(
+                        "ticket_id, signal_a, signal_b, signal_c, escalation_reason"
+                    )
                     .in_("ticket_id", ticket_ids)
                     .execute()
                 )
@@ -96,9 +101,15 @@ async def get_escalated_tickets():
                 {
                     **t,
                     "ticket_id": ticket_id,
-                    "evidence_card": audit_entry.get("evidence_card") if audit_entry else None,
-                    "decision_latency_ms": audit_entry.get("latency_ms") if audit_entry else None,
-                    "escalation_reason": outcome.get("escalation_reason") if outcome else None,
+                    "evidence_card": audit_entry.get("evidence_card")
+                    if audit_entry
+                    else None,
+                    "decision_latency_ms": audit_entry.get("latency_ms")
+                    if audit_entry
+                    else None,
+                    "escalation_reason": outcome.get("escalation_reason")
+                    if outcome
+                    else None,
                 }
             )
 
@@ -252,6 +263,7 @@ class AgentResolution(BaseModel):
     resolution_text: str
     resolution_type: str  # "verified", "workaround", or "uncertain"
     override_reason: Optional[str] = None
+    accept_suggestion: bool = False  # true when agent clicks "Accept AI Resolution"
 
 
 @router.post("/{ticket_id}/resolve")
@@ -293,7 +305,10 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
 
         retrospective_match = False
         auto_resolved_retro = False
-        if ai_suggestion:
+        if resolution.accept_suggestion:
+            retrospective_match = True
+            auto_resolved_retro = True
+        elif ai_suggestion:
             from difflib import SequenceMatcher
 
             similarity = SequenceMatcher(
@@ -372,6 +387,7 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
             {
                 "status": "resolved",
                 "resolved_at": datetime.now(timezone.utc).isoformat(),
+                "auto_resolved": auto_resolved_retro,
             }
         ).eq("id", ticket_id).execute()
 
@@ -523,7 +539,7 @@ async def get_all_tickets():
             return []
 
         ticket_ids = [t["id"] for t in tickets]
-        
+
         # Batch fetch audit_log for all tickets (not in a loop)
         audit_logs = {}
         if ticket_ids:
