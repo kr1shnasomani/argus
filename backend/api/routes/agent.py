@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -11,52 +12,100 @@ from utils.audit_hash import log_to_audit
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tickets", tags=["agent"])
 
+# Retry configuration for handling Supabase connection drops
+async def _retry_operation(operation, max_retries=3, base_delay=0.5):
+    """Retry an operation with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt)
+            await asyncio.sleep(delay)
+
 
 @router.get("/agent/escalated")
 async def get_escalated_tickets():
     """
     Returns all escalated tickets, joined with evidence cards from audit_log,
     sorted by severity then creation time.
+    
+    Uses batched queries to avoid N+1 problem and connection exhaustion.
     """
     supabase = get_supabase()
     try:
-        tickets_res = supabase.table("tickets").select("*").in_("status", ["escalated"]).order("created_at", desc=False).execute()
+        # Query 1: Get all escalated tickets
+        tickets_res = (
+            supabase.table("tickets")
+            .select("*")
+            .in_("status", ["escalated"])
+            .order("created_at", desc=False)
+            .execute()
+        )
         tickets = tickets_res.data
 
         if not tickets:
             return []
 
-        # For each ticket, fetch the latest evidence card from audit_log
+        ticket_ids = [t["id"] for t in tickets]
+
+        # Query 2: Get latest audit_log entries for all tickets (batched)
+        audit_logs = {}
+        if ticket_ids:
+            try:
+                audit_res = (
+                    supabase.table("audit_log")
+                    .select("ticket_id, evidence_card, audit_hash, latency_ms, created_at")
+                    .in_("ticket_id", ticket_ids)
+                    .order("created_at", desc=True)
+                    .execute()
+                )
+                # Group by ticket_id and keep only latest (first one after desc order)
+                for record in audit_res.data:
+                    if record["ticket_id"] not in audit_logs:
+                        audit_logs[record["ticket_id"]] = record
+            except Exception as e:
+                logger.warning(f"Failed to fetch audit logs: {e}")
+                audit_logs = {}
+
+        # Query 3: Get outcomes for all tickets (batched)
+        outcomes = {}
+        if ticket_ids:
+            try:
+                outcome_res = (
+                    supabase.table("ticket_outcomes")
+                    .select("ticket_id, signal_a, signal_b, signal_c, escalation_reason")
+                    .in_("ticket_id", ticket_ids)
+                    .execute()
+                )
+                for record in outcome_res.data:
+                    outcomes[record["ticket_id"]] = record
+            except Exception as e:
+                logger.warning(f"Failed to fetch outcomes: {e}")
+                outcomes = {}
+
+        # Join in memory - no more DB queries
         enriched = []
         for t in tickets:
-            audit_res = supabase.table("audit_log") \
-                .select("evidence_card, audit_hash, latency_ms, created_at") \
-                .eq("ticket_id", t["id"]) \
-                .order("created_at", desc=True) \
-                .limit(1) \
-                .execute()
+            ticket_id = t["id"]
+            audit_entry = audit_logs.get(ticket_id)
+            outcome = outcomes.get(ticket_id)
 
-            evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else None
-            latency_ms = audit_res.data[0]["latency_ms"] if audit_res.data else None
-
-            # Also pull outcome for signal data
-            outcome_res = supabase.table("ticket_outcomes") \
-                .select("signal_a, signal_b, signal_c, escalation_reason") \
-                .eq("ticket_id", t["id"]) \
-                .limit(1) \
-                .execute()
-            outcome = outcome_res.data[0] if outcome_res.data else None
-
-            enriched.append({
-                **t,
-                "ticket_id": t["id"],
-                "evidence_card": evidence_card,
-                "decision_latency_ms": latency_ms,
-                "escalation_reason": outcome["escalation_reason"] if outcome else None,
-            })
+            enriched.append(
+                {
+                    **t,
+                    "ticket_id": ticket_id,
+                    "evidence_card": audit_entry.get("evidence_card") if audit_entry else None,
+                    "decision_latency_ms": audit_entry.get("latency_ms") if audit_entry else None,
+                    "escalation_reason": outcome.get("escalation_reason") if outcome else None,
+                }
+            )
 
         # Sort by urgency then created_at (oldest first)
-        enriched.sort(key=lambda x: (0 if x.get("is_urgent") else 1, x.get("created_at", "")))
+        enriched.sort(
+            key=lambda x: (0 if x.get("is_urgent") else 1, x.get("created_at", ""))
+        )
 
         return enriched
 
@@ -79,29 +128,38 @@ async def get_ticket_evidence(ticket_id: str):
         t = ticket_res.data[0]
 
         # Try to get the latest audit/evidence entry
-        audit_res = supabase.table("audit_log") \
-            .select("evidence_card, audit_hash, latency_ms, created_at") \
-            .eq("ticket_id", ticket_id) \
-            .order("created_at", desc=True) \
-            .limit(1) \
+        audit_res = (
+            supabase.table("audit_log")
+            .select("evidence_card, audit_hash, latency_ms, created_at")
+            .eq("ticket_id", ticket_id)
+            .order("created_at", desc=True)
+            .limit(1)
             .execute()
+        )
 
         evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else None
         latency_ms = audit_res.data[0]["latency_ms"] if audit_res.data else None
         audit_log = audit_res.data[0] if audit_res.data else None
 
         # Fetch outcome data for signals and escalation context
-        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        outcome_res = (
+            supabase.table("ticket_outcomes")
+            .select("*")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
         outcome = outcome_res.data[0] if outcome_res.data else None
 
         # Fetch thresholds for this ticket category
         thresholds = None
         if t.get("category"):
-            th_res = supabase.table("category_thresholds") \
-                .select("threshold_a, threshold_b, threshold_c, min_sample_size") \
-                .eq("category", t.get("category")) \
-                .limit(1) \
+            th_res = (
+                supabase.table("category_thresholds")
+                .select("threshold_a, threshold_b, threshold_c, min_sample_size")
+                .eq("category", t.get("category"))
+                .limit(1)
                 .execute()
+            )
             thresholds = th_res.data[0] if th_res.data else None
 
         candidate_fixes = []
@@ -139,7 +197,12 @@ async def get_ticket_evidence(ticket_id: str):
             th_b = thresholds.get("threshold_b") if thresholds else None
             th_c = thresholds.get("threshold_c") if thresholds else None
 
-            if "vip" in reason_text or "p1" in reason_text or "p2" in reason_text or "freeze" in reason_text:
+            if (
+                "vip" in reason_text
+                or "p1" in reason_text
+                or "p2" in reason_text
+                or "freeze" in reason_text
+            ):
                 layer_intercepted = 1
             elif "novel" in reason_text:
                 layer_intercepted = 2
@@ -160,7 +223,12 @@ async def get_ticket_evidence(ticket_id: str):
             "outcome": outcome,
             "audit_log": audit_log,
             "candidate_fixes": candidate_fixes,
-            "resolution_applied": (outcome.get("resolution") if outcome else None) or (evidence_card.get("resolution_applied") if isinstance(evidence_card, dict) else None),
+            "resolution_applied": (outcome.get("resolution") if outcome else None)
+            or (
+                evidence_card.get("resolution_applied")
+                if isinstance(evidence_card, dict)
+                else None
+            ),
             "sandbox_passed": outcome.get("sandbox_passed") if outcome else None,
             "escalation_reason": escalation_reason,
             "signal_a": outcome.get("signal_a") if outcome else None,
@@ -204,36 +272,47 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
             raise HTTPException(status_code=404, detail="Ticket not found.")
         ticket = ticket_res.data[0]
 
-        # Refine message via LLM 
+        # Refine message via LLM
         try:
             resolution_msg = await generate_resolution_message(
-                resolution.resolution_text,
-                ticket.get("description", "")
+                resolution.resolution_text, ticket.get("description", "")
             )
         except Exception:
             resolution_msg = resolution.resolution_text  # fallback
 
         # Check AI Suggestion for retrospective match
-        outcome_res = supabase.table("ticket_outcomes").select("ai_suggestion").eq("ticket_id", ticket_id).execute()
-        ai_suggestion = outcome_res.data[0].get("ai_suggestion") if outcome_res.data else None
-        
+        outcome_res = (
+            supabase.table("ticket_outcomes")
+            .select("ai_suggestion")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
+        ai_suggestion = (
+            outcome_res.data[0].get("ai_suggestion") if outcome_res.data else None
+        )
+
         retrospective_match = False
         auto_resolved_retro = False
         if ai_suggestion:
             from difflib import SequenceMatcher
-            similarity = SequenceMatcher(None, ai_suggestion.lower(), resolution.resolution_text.lower()).ratio()
+
+            similarity = SequenceMatcher(
+                None, ai_suggestion.lower(), resolution.resolution_text.lower()
+            ).ratio()
             if similarity > 0.80:
                 retrospective_match = True
                 auto_resolved_retro = True
 
         # Update ticket outcome
-        supabase.table("ticket_outcomes").update({
-            "resolution": resolution.resolution_text,
-            "agent_verified": resolution.resolution_type == "verified",
-            "override_reason": resolution.override_reason,
-            "retrospective_match": retrospective_match,
-            "auto_resolved": auto_resolved_retro if retrospective_match else False
-        }).eq("ticket_id", ticket_id).execute()
+        supabase.table("ticket_outcomes").update(
+            {
+                "resolution": resolution.resolution_text,
+                "agent_verified": resolution.resolution_type == "verified",
+                "override_reason": resolution.override_reason,
+                "retrospective_match": retrospective_match,
+                "auto_resolved": auto_resolved_retro if retrospective_match else False,
+            }
+        ).eq("ticket_id", ticket_id).execute()
 
         # If verified, embed and upsert into Qdrant with the correct cluster
         if resolution.resolution_type == "verified":
@@ -247,11 +326,15 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
                 vector = await generate_embedding(ticket.get("description", ""))
 
                 # Determine cluster: first try exact lookup, then fall back to top similar result's cluster
-                resolution_cluster = get_resolution_cluster(resolution.resolution_text, cluster_map)
+                resolution_cluster = get_resolution_cluster(
+                    resolution.resolution_text, cluster_map
+                )
                 if not resolution_cluster or resolution_cluster == "unknown_cluster":
                     similar = await qdrant_svc.search_similar(vector, top_k=1)
                     if similar and similar[0].payload:
-                        resolution_cluster = similar[0].payload.get("resolution_cluster", "agent_verified")
+                        resolution_cluster = similar[0].payload.get(
+                            "resolution_cluster", "agent_verified"
+                        )
                     else:
                         resolution_cluster = "agent_verified"
 
@@ -266,9 +349,11 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
                         "severity": ticket.get("severity"),
                         "auto_resolved": False,
                         "verified": True,
-                    }
+                    },
                 )
-                logger.info(f"Upserted verified resolution into Qdrant with cluster '{resolution_cluster}'")
+                logger.info(
+                    f"Upserted verified resolution into Qdrant with cluster '{resolution_cluster}'"
+                )
             except Exception as e:
                 logger.warning(f"Qdrant upsert failed for verified resolution: {e}")
 
@@ -276,21 +361,24 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
         evidence = {
             "resolution": resolution.resolution_text,
             "type": resolution.resolution_type,
-            "override_reason": resolution.override_reason
+            "override_reason": resolution.override_reason,
         }
         log_to_audit(ticket_id, "AGENT_RESOLVED", evidence, supabase)
 
         # Update ticket status
         from datetime import datetime, timezone
-        supabase.table("tickets").update({
-            "status": "resolved",
-            "resolved_at": datetime.now(timezone.utc).isoformat()
-        }).eq("id", ticket_id).execute()
+
+        supabase.table("tickets").update(
+            {
+                "status": "resolved",
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+            }
+        ).eq("id", ticket_id).execute()
 
         return {
             "ticket_id": ticket_id,
             "status": "resolved",
-            "resolution_message": resolution_msg
+            "resolution_message": resolution_msg,
         }
 
     except HTTPException:
@@ -307,11 +395,18 @@ async def verify_auto_resolution(ticket_id: str):
     """
     supabase = get_supabase()
     try:
-        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        outcome_res = (
+            supabase.table("ticket_outcomes")
+            .select("*")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
         if not outcome_res.data:
             raise HTTPException(status_code=404, detail="Ticket outcome not found.")
 
-        supabase.table("ticket_outcomes").update({"agent_verified": True}).eq("ticket_id", ticket_id).execute()
+        supabase.table("ticket_outcomes").update({"agent_verified": True}).eq(
+            "ticket_id", ticket_id
+        ).execute()
         return {"ticket_id": ticket_id, "agent_verified": True}
     except HTTPException:
         raise
@@ -334,10 +429,17 @@ async def submit_correction(ticket_id: str, payload: dict):
         corrected = payload.get("corrected_resolution")
         resolution_type = payload.get("resolution_type", "workaround")
         if not corrected or not isinstance(corrected, str):
-            raise HTTPException(status_code=400, detail="corrected_resolution is required")
+            raise HTTPException(
+                status_code=400, detail="corrected_resolution is required"
+            )
 
         # fetch existing outcome to preserve original AI resolution
-        outcome_res = supabase.table("ticket_outcomes").select("*").eq("ticket_id", ticket_id).execute()
+        outcome_res = (
+            supabase.table("ticket_outcomes")
+            .select("*")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
         if not outcome_res.data:
             raise HTTPException(status_code=404, detail="Ticket outcome not found.")
         outcome = outcome_res.data[0]
@@ -345,26 +447,34 @@ async def submit_correction(ticket_id: str, payload: dict):
         original_ai = outcome.get("resolution") or outcome.get("ai_suggestion")
 
         # update outcome: set ai_suggestion to the original AI resolution, write corrected resolution
-        supabase.table("ticket_outcomes").update({
-            "ai_suggestion": original_ai,
-            "resolution": corrected,
-            "retrospective_match": False,
-            "agent_verified": True,
-            "override_reason": "Incorrect auto-resolution — agent corrected"
-        }).eq("ticket_id", ticket_id).execute()
+        supabase.table("ticket_outcomes").update(
+            {
+                "ai_suggestion": original_ai,
+                "resolution": corrected,
+                "retrospective_match": False,
+                "agent_verified": True,
+                "override_reason": "Incorrect auto-resolution — agent corrected",
+            }
+        ).eq("ticket_id", ticket_id).execute()
 
         # If agent marked as verified reusable, upsert into Qdrant so AI learns the corrected fix
         if resolution_type == "verified":
             try:
                 # embed ticket description (prefer description from tickets table)
-                ticket_res = supabase.table("tickets").select("description, category, severity").eq("id", ticket_id).execute()
+                ticket_res = (
+                    supabase.table("tickets")
+                    .select("description, category, severity")
+                    .eq("id", ticket_id)
+                    .execute()
+                )
                 ticket = ticket_res.data[0] if ticket_res.data else {"description": ""}
                 vector = await generate_embedding(ticket.get("description", ""))
                 payload = {
                     "category": ticket.get("category"),
                     "description": ticket.get("description"),
                     "resolution": corrected,
-                    "resolution_cluster": outcome.get("resolution_cluster") or "agent_verified",
+                    "resolution_cluster": outcome.get("resolution_cluster")
+                    or "agent_verified",
                     "severity": ticket.get("severity"),
                     "auto_resolved": False,
                     "verified": True,
@@ -374,7 +484,12 @@ async def submit_correction(ticket_id: str, payload: dict):
                 logger.warning(f"Qdrant upsert during correction failed: {e}")
 
         # Log to audit for traceability
-        log_to_audit(ticket_id, "AGENT_CORRECTION", {"corrected_resolution": corrected, "resolution_type": resolution_type}, supabase)
+        log_to_audit(
+            ticket_id,
+            "AGENT_CORRECTION",
+            {"corrected_resolution": corrected, "resolution_type": resolution_type},
+            supabase,
+        )
 
         return {"ticket_id": ticket_id, "status": "correction_recorded"}
     except HTTPException:
@@ -389,30 +504,51 @@ async def get_all_tickets():
     """
     Returns history of all tickets allowing admins to see what Argus resolved vs escalated.
     Includes audit_log data for verification status display.
+    Uses batched queries to avoid N+1 problem.
     """
     supabase = get_supabase()
     try:
-        tickets_res = supabase.table("tickets").select(
-            "id, user_id, description, category, severity, status, created_at, resolved_at, users(email)"
-        ).order("created_at", desc=True).limit(250).execute()
-        
+        tickets_res = (
+            supabase.table("tickets")
+            .select(
+                "id, user_id, description, category, severity, status, created_at, resolved_at, users(email)"
+            )
+            .order("created_at", desc=True)
+            .limit(250)
+            .execute()
+        )
+
         tickets = tickets_res.data
         if not tickets:
             return []
+
+        ticket_ids = [t["id"] for t in tickets]
         
-        # Enrich each ticket with audit_log if it exists
+        # Batch fetch audit_log for all tickets (not in a loop)
+        audit_logs = {}
+        if ticket_ids:
+            try:
+                audit_res = (
+                    supabase.table("audit_log")
+                    .select("ticket_id, audit_hash, created_at")
+                    .in_("ticket_id", ticket_ids)
+                    .order("created_at", desc=True)
+                    .execute()
+                )
+                # Group by ticket_id and keep only latest
+                for record in audit_res.data:
+                    if record["ticket_id"] not in audit_logs:
+                        audit_logs[record["ticket_id"]] = record
+            except Exception as e:
+                logger.warning(f"Failed to fetch audit logs: {e}")
+                audit_logs = {}
+
+        # Join in memory
         enriched = []
         for t in tickets:
-            audit_res = supabase.table("audit_log") \
-                .select("audit_hash, created_at") \
-                .eq("ticket_id", t["id"]) \
-                .order("created_at", desc=True) \
-                .limit(1) \
-                .execute()
-            
-            audit_log = audit_res.data[0] if audit_res.data else None
+            audit_log = audit_logs.get(t["id"])
             enriched.append({**t, "audit_log": audit_log})
-            
+
         return enriched
     except Exception as e:
         logger.error(f"Failed to fetch all tickets: {e}")

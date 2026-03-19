@@ -22,7 +22,9 @@ export interface TicketSubmission {
 export interface TicketResponse {
   ticket_id: string;
   status: "processing" | "auto_resolved" | "escalated" | "resolved";
-  message: string;
+  resolution_message?: string | null;
+  resolution?: string | null;
+  decision_latency_ms?: number | null;
 }
 
 export interface TicketStatusDetail {

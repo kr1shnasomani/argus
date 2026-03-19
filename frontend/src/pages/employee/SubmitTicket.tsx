@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { submitTicket } from "@/services/tickets";
@@ -20,6 +20,10 @@ import {
   ShieldCheck,
   Cpu,
   GitBranch,
+  Users,
+  Clock,
+  Zap,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -31,13 +35,19 @@ type System = {
 
 export const SubmitTicket = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedEmail = searchParams.get("email") || "";
+
   const [systems, setSystems] = useState<System[]>([]);
   const [loadingSystems, setLoadingSystems] = useState(true);
   const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
+  const [submittedStatus, setSubmittedStatus] = useState<string | null>(null);
+  const [submittedResolution, setSubmittedResolution] = useState<string | null>(null);
+  const [submittedLatency, setSubmittedLatency] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     description: "",
     category: "",
-    user_email: "",
+    user_email: preselectedEmail,
     system_id: "",
     urgent: false,
   });
@@ -69,6 +79,9 @@ export const SubmitTicket = () => {
         description: `Ticket ${data.ticket_id} is being processed.`,
       });
       setSubmittedTicketId(data.ticket_id);
+      setSubmittedStatus(data.status);
+      setSubmittedResolution(data.resolution || null);
+      setSubmittedLatency(data.decision_latency_ms ?? null);
     },
     onError: (error: unknown) => {
       let description = "Please check your connection and try again.";
@@ -157,45 +170,22 @@ export const SubmitTicket = () => {
       </section>
 
       {submittedTicketId ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4 space-y-6 bg-[var(--argus-surface)] rounded-2xl border border-[var(--argus-border)] shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-[var(--argus-emerald-light)] flex items-center justify-center text-[var(--argus-emerald)]">
-            <CheckCircle2 size={32} />
-          </div>
-          <div className="text-center space-y-2 max-w-md">
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--argus-text-primary)]">Ticket Submitted Successfully</h2>
-            <p className="text-[15px] text-[var(--argus-text-secondary)]">
-              Your request has been routed to the Argus engine for analysis. It will be evaluated for similarity, policy compliance, and potential auto-resolution.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 w-full max-w-md">
-            <Button
-              onClick={() => navigate(`/agent/ticket/${submittedTicketId}`)}
-              className="flex-1 h-11 emp-btn-primary"
-            >
-              View Ticket Status
-            </Button>
-            <Button
-              onClick={() => {
-                setSubmittedTicketId(null);
-                setFormData({ ...formData, description: "", category: "" });
-                setFile(null);
-              }}
-              variant="outline"
-              className="flex-1 h-11"
-              style={{ borderColor: "var(--argus-border)", color: "var(--argus-text-primary)" }}
-            >
-              Submit Another
-            </Button>
-            <Button
-              onClick={() => navigate(`/agent`)}
-              variant="outline"
-              className="flex-1 h-11"
-              style={{ borderColor: "var(--argus-border)", color: "var(--argus-text-primary)" }}
-            >
-              Agent Dashboard
-            </Button>
-          </div>
-        </div>
+        <TicketResultCard
+          ticketId={submittedTicketId}
+          status={submittedStatus!}
+          resolution={submittedResolution}
+          latencyMs={submittedLatency}
+          onViewTicket={() => navigate(`/agent/ticket/${submittedTicketId}`)}
+          onReturn={() => navigate("/employee")}
+          onSubmitAnother={() => {
+            setSubmittedTicketId(null);
+            setSubmittedStatus(null);
+            setSubmittedResolution(null);
+            setSubmittedLatency(null);
+            setFormData({ ...formData, description: "", category: "" });
+            setFile(null);
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
           <div
@@ -430,3 +420,238 @@ export const SubmitTicket = () => {
     </motion.div>
   );
 };
+
+// ── Ticket Result Card ───────────────────────────────────────────
+
+interface TicketResultCardProps {
+  ticketId: string;
+  status: string;
+  resolution: string | null;
+  latencyMs?: number | null;
+  onViewTicket: () => void;
+  onReturn: () => void;
+  onSubmitAnother: () => void;
+}
+
+const STATUS_CONFIG = {
+  auto_resolved: {
+    heading: "Your issue has been fixed.",
+    subheading: "Argus identified a matching solution and resolved it automatically.",
+    icon: CheckCircle2,
+    accent: "#059669",
+    accentLight: "#D1FAE5",
+    accentBorder: "rgba(5,150,105,0.25)",
+    badgeLabel: "Auto-Resolved",
+  },
+  escalated: {
+    heading: "Ticket escalated to an IT agent.",
+    subheading: "A human specialist has been notified and will review your request shortly.",
+    icon: Users,
+    accent: "#D97706",
+    accentLight: "#FEF3C7",
+    accentBorder: "rgba(217,119,6,0.25)",
+    badgeLabel: "Escalated",
+  },
+  resolved: {
+    heading: "Your ticket has been resolved.",
+    subheading: "The IT team has addressed your request.",
+    icon: CheckCircle2,
+    accent: "#059669",
+    accentLight: "#D1FAE5",
+    accentBorder: "rgba(5,150,105,0.25)",
+    badgeLabel: "Resolved",
+  },
+  processing: {
+    heading: "Your request is being analyzed.",
+    subheading: "Argus is evaluating policy, similarity, and confidence signals.",
+    icon: Zap,
+    accent: "#4F46E5",
+    accentLight: "#EEF2FF",
+    accentBorder: "rgba(79,70,229,0.25)",
+    badgeLabel: "Processing",
+  },
+};
+
+function TicketResultCard({
+  ticketId,
+  status,
+  resolution,
+  latencyMs,
+  onViewTicket,
+  onReturn,
+  onSubmitAnother,
+}: TicketResultCardProps) {
+  const cfg =
+    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.processing;
+  const ResultIcon = cfg.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="max-w-xl mx-auto"
+    >
+      {/* White card on argus-bg */}
+      <div className="bg-white rounded-2xl border border-[#E2E5EE] overflow-hidden" style={{ boxShadow: "var(--shadow-lg)" }}>
+
+        {/* Top accent strip — status color */}
+        <div className="h-[3px] w-full" style={{ background: cfg.accent }} />
+
+        <div className="px-7 py-8 space-y-5">
+
+          {/* Icon + heading */}
+          <div className="flex items-start gap-4">
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 20 }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: cfg.accentLight, color: cfg.accent }}
+            >
+              <ResultIcon size={28} />
+            </motion.div>
+
+            <div className="flex-1 min-w-0 pt-1">
+              <h2 className="text-[22px] font-bold tracking-tight text-[#0F172A] mb-1">
+                {cfg.heading}
+              </h2>
+              <p className="text-[14px] leading-relaxed text-[#475569]">
+                {cfg.subheading}
+              </p>
+            </div>
+          </div>
+
+          {/* Ticket ID row */}
+          <div className="flex items-center justify-between px-4 py-3 bg-[#F0F1F7] border border-[#E2E5EE] rounded-xl">
+            <div className="flex items-center gap-3">
+              <span
+                className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg"
+                style={{ background: cfg.accentLight, color: cfg.accent }}
+              >
+                #{ticketId.slice(0, 8).toUpperCase()}
+              </span>
+              <span className="text-[12px] text-[#94A3B8]">
+                <Clock size={11} className="inline mr-1" />
+                {new Date().toLocaleTimeString()}
+              </span>
+            </div>
+            <span
+              className="text-[11px] font-bold px-3 py-1 rounded-full border"
+              style={{
+                background: cfg.accentLight,
+                color: cfg.accent,
+                borderColor: cfg.accentBorder,
+              }}
+            >
+              {cfg.badgeLabel}
+            </span>
+          </div>
+
+          {/* Resolution / Escalation panel */}
+          {(status === "auto_resolved" || status === "resolved") && resolution ? (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+              className="space-y-2"
+            >
+              <p className="text-[11px] font-bold uppercase tracking-widest text-[#94A3B8]">
+                Resolution applied
+              </p>
+              <div
+                className="p-4 rounded-xl leading-relaxed text-[14px] text-[#0F172A]"
+                style={{
+                  background: cfg.accentLight,
+                  border: `1px solid ${cfg.accentBorder}`,
+                }}
+              >
+                {resolution}
+              </div>
+              {latencyMs != null && (
+                <p className="text-[11px] text-[#94A3B8]">
+                  Resolved in{" "}
+                  <span className="font-mono font-bold" style={{ color: cfg.accent }}>
+                    {latencyMs.toFixed(0)}ms
+                  </span>
+                </p>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+              className="flex items-start gap-3 p-4 rounded-xl"
+              style={{
+                background: cfg.accentLight,
+                border: `1px solid ${cfg.accentBorder}`,
+              }}
+            >
+              <ResultIcon size={16} className="mt-0.5 flex-shrink-0" style={{ color: cfg.accent }} />
+              <div>
+                <p className="text-[13px] font-bold" style={{ color: cfg.accent }}>
+                  {status === "processing" ? "Analysis in progress" : "Human escalation triggered"}
+                </p>
+                <p className="text-[12px] mt-0.5 text-[#475569]">
+                  {status === "processing"
+                    ? "The Argus engine is running policy, confidence, and sandbox checks. You'll be notified once a decision is reached."
+                    : "An IT specialist has been automatically notified. Expect a response within your SLA window."}
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Divider */}
+          <div className="h-px w-full bg-[#E2E5EE]" />
+
+          {/* Action buttons — always visible */}
+          <div className="flex items-center gap-3">
+            {/* View Ticket — solid colored button */}
+            <button
+              onClick={onViewTicket}
+              className="flex-1 h-11 rounded-xl font-semibold text-[14px] text-white flex items-center justify-center gap-2 cursor-pointer transition-all"
+              style={{
+                background: cfg.accent,
+                boxShadow: `0 4px 14px ${cfg.accent}30`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = "brightness(1.1)";
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow = `0 6px 20px ${cfg.accent}40`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = "";
+                e.currentTarget.style.transform = "";
+                e.currentTarget.style.boxShadow = `0 4px 14px ${cfg.accent}30`;
+              }}
+            >
+              View Ticket
+              <ArrowRight size={14} />
+            </button>
+
+            {/* User Select — outline button */}
+            <button
+              onClick={onReturn}
+              className="flex-1 h-11 px-4 rounded-xl font-medium text-[14px] text-[#475569] flex items-center justify-center gap-2 cursor-pointer border border-[#E2E5EE] bg-white hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all"
+            >
+              <ArrowLeft size={13} />
+              User Select
+            </button>
+          </div>
+
+          {/* Submit another */}
+          <div className="text-center pt-1">
+            <button
+              onClick={onSubmitAnother}
+              className="text-[13px] font-medium text-[#4F46E5] hover:underline cursor-pointer bg-transparent border-none"
+            >
+              Submit another request &rarr;
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </motion.div>
+  );
+}

@@ -12,6 +12,19 @@ export const getSystems = async () => {
   return data;
 };
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  tier: string;
+}
+
+export const getUsers = async (): Promise<User[]> => {
+  const { data } = await api.get("/config/users");
+  return data;
+};
+
 export type SimulationRequestPayload = {
   description: string;
   user_tier: "standard" | "vip" | "contractor";

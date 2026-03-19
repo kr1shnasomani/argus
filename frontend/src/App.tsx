@@ -9,6 +9,7 @@ import { LandingPage } from '@/pages/landing/LandingPage';
 // Route-level code splitting keeps landing payload lighter.
 const EmployeeLayout = lazy(() => import('./layouts/EmployeeLayout').then((m) => ({ default: m.EmployeeLayout })));
 const AgentLayout = lazy(() => import('./layouts/AgentLayout').then((m) => ({ default: m.AgentLayout })));
+const UserSelectGrid = lazy(() => import('@/pages/employee/UserSelectGrid').then((m) => ({ default: m.UserSelectGrid })));
 const SubmitTicket = lazy(() => import('@/pages/employee/SubmitTicket').then((m) => ({ default: m.SubmitTicket })));
 const TicketStatus = lazy(() => import('@/pages/employee/TicketStatus').then((m) => ({ default: m.TicketStatus })));
 const EscalatedQueue = lazy(() => import('@/pages/agent/EscalatedQueue').then((m) => ({ default: m.EscalatedQueue })));
@@ -38,7 +39,8 @@ function App() {
 
               {/* Employee Portal */}
               <Route path="/employee" element={<EmployeeLayout />}>
-                <Route index element={<SubmitTicket />} />
+                <Route index element={<UserSelectGrid />} />
+                <Route path="submit" element={<SubmitTicket />} />
                 <Route path="ticket/:id" element={<TicketStatus />} />
               </Route>
 

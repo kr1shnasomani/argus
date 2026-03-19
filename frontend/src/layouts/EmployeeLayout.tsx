@@ -1,36 +1,49 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Home } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import argusLogo from '@/assets/argus-logo.png';
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowUpRight, Home, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import argusLogo from "@/assets/argus-logo.png";
 
 export const EmployeeLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const isOnSubmitPage = location.pathname === "/employee/submit";
 
   return (
-    <div className="employee-portal min-h-screen flex flex-col" style={{ background: 'var(--argus-bg)' }}>
+    <div className="employee-portal min-h-screen flex flex-col" style={{ background: "var(--argus-bg)" }}>
 
-      {/* \u2500\u2500\u2500 Top Navigation \u2500\u2500\u2500 */}
-      <header 
+      {/* ── Top Navigation ── */}
+      <header
         className="sticky top-0 z-50 border-b"
-        style={{ borderColor: 'var(--argus-border)', background: 'var(--argus-surface)' }}
+        style={{ borderColor: "var(--argus-border)", background: "var(--argus-surface)" }}
       >
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/employee" className="flex items-center gap-2.5">
-            <img
-              src={argusLogo}
-              alt="Argus logo"
-              className="w-7 h-7 rounded-lg object-cover border"
-              style={{ borderColor: 'var(--argus-border-subtle)' }}
-            />
-            <span className="text-[15px] font-bold tracking-tight" style={{ color: 'var(--argus-text-primary)' }}>
-              Argus
-            </span>
-            <span className="text-xs" style={{ color: 'var(--argus-text-muted)' }}>/</span>
-            <span className="text-[13px] font-medium" style={{ color: 'var(--argus-text-secondary)' }}>
-              Support
-            </span>
-          </Link>
+          {/* Left: Back arrow + Logo */}
+          <div className="flex items-center gap-2">
+            {isOnSubmitPage && (
+              <button
+                onClick={() => navigate("/employee")}
+                className="emp-topbar-link cursor-pointer"
+                title="Back to user selection"
+              >
+                <ArrowLeft size={14} />
+              </button>
+            )}
+            <Link to="/employee" className="flex items-center gap-2.5">
+              <img
+                src={argusLogo}
+                alt="Argus logo"
+                className="w-7 h-7 rounded-lg object-cover border"
+                style={{ borderColor: "var(--argus-border-subtle)" }}
+              />
+              <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--argus-text-primary)" }}>
+                Argus
+              </span>
+              <span className="text-xs" style={{ color: "var(--argus-text-muted)" }}>/</span>
+              <span className="text-[13px] font-medium" style={{ color: "var(--argus-text-secondary)" }}>
+                Support
+              </span>
+            </Link>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-1">
@@ -42,7 +55,7 @@ export const EmployeeLayout = () => {
               <span className="hidden sm:inline">Dashboard</span>
               <ArrowUpRight size={12} />
             </Link>
-            <div className="w-px h-4 mx-1" style={{ background: 'var(--argus-border)' }} />
+            <div className="w-px h-4 mx-1" style={{ background: "var(--argus-border)" }} />
           </div>
         </div>
       </header>

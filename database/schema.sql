@@ -30,6 +30,7 @@ CREATE TABLE tickets (
     category TEXT NOT NULL,
     severity TEXT NOT NULL CHECK (severity IN ('P1', 'P2', 'P3', 'P4')),
     status TEXT NOT NULL DEFAULT 'processing' CHECK (status IN ('processing', 'auto_resolved', 'escalated', 'resolved')),
+    is_urgent BOOLEAN NOT NULL DEFAULT false,
     attachment_url TEXT,
     attachment_text TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

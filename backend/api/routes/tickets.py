@@ -34,10 +34,12 @@ async def submit_ticket(
             attachment_url = await upload_attachment(
                 file_name=attachment.filename,
                 file_bytes=file_bytes,
-                mime_type=attachment.content_type
+                mime_type=attachment.content_type,
             )
         except Exception as e:
-            logger.warning(f"Attachment upload failed: {e}. Proceeding without attachment.")
+            logger.warning(
+                f"Attachment upload failed: {e}. Proceeding without attachment."
+            )
 
     supabase = get_supabase()
     category_clean = (category or "").strip()
@@ -47,11 +49,15 @@ async def submit_ticket(
     system_name = None
     if system_id:
         try:
-            system_res = supabase.table("systems").select("name").eq("id", system_id).execute()
+            system_res = (
+                supabase.table("systems").select("name").eq("id", system_id).execute()
+            )
             if system_res.data:
                 system_name = system_res.data[0]["name"]
         except Exception as e:
-            logger.warning(f"Failed to fetch system name for system_id '{system_id}': {e}")
+            logger.warning(
+                f"Failed to fetch system name for system_id '{system_id}': {e}"
+            )
 
     ticket = {
         "description": description,
@@ -64,10 +70,15 @@ async def submit_ticket(
 
     # Insert the raw ticket first (status: processing)
     try:
-        user_data = supabase.table("users").select("id").eq("email", user_email).execute()
+        user_data = (
+            supabase.table("users").select("id").eq("email", user_email).execute()
+        )
         user_id = user_data.data[0]["id"] if user_data.data else None
         if not user_id:
-            raise HTTPException(status_code=404, detail=f"User with email '{user_email}' not found. Please register first.")
+            raise HTTPException(
+                status_code=404,
+                detail=f"User with email '{user_email}' not found. Please register first.",
+            )
 
         ticket_row = {
             "user_id": user_id,
@@ -77,7 +88,7 @@ async def submit_ticket(
             "severity": severity,
             "is_urgent": urgent_flag,
             "status": "processing",
-            "attachment_url": attachment_url
+            "attachment_url": attachment_url,
         }
         insert_res = supabase.table("tickets").insert(ticket_row).execute()
         ticket["id"] = insert_res.data[0]["id"]
@@ -90,7 +101,9 @@ async def submit_ticket(
 
     # Run the full pipeline
     try:
-        result = await process_ticket(ticket, supabase, app_state["qdrant_client"], app_state["cluster_map"])
+        result = await process_ticket(
+            ticket, supabase, app_state["qdrant_client"], app_state["cluster_map"]
+        )
     except Exception as e:
         logger.error(f"Pipeline execution failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Pipeline error: {e}")
@@ -99,6 +112,7 @@ async def submit_ticket(
         ticket_id=ticket["id"],
         status=result["status"],
         resolution_message=result.get("resolution_message"),
+        resolution=result.get("resolution"),
         decision_latency_ms=result.get("latency_ms"),
     )
 
@@ -113,16 +127,28 @@ async def get_ticket_status(ticket_id: str):
         ticket_res = supabase.table("tickets").select("*").eq("id", ticket_id).execute()
         if not ticket_res.data:
             raise HTTPException(status_code=404, detail="Ticket not found.")
-        
+
         ticket = ticket_res.data[0]
-        
-        outcome_res = supabase.table("ticket_outcomes").select("resolution, signal_a, signal_b, signal_c").eq("ticket_id", ticket_id).execute()
+
+        outcome_res = (
+            supabase.table("ticket_outcomes")
+            .select("resolution, signal_a, signal_b, signal_c")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
         outcome = outcome_res.data[0] if outcome_res.data else None
-        
-        audit_res = supabase.table("audit_log").select("latency_ms, evidence_card").eq("ticket_id", ticket_id).order("created_at", desc=True).limit(1).execute()
+
+        audit_res = (
+            supabase.table("audit_log")
+            .select("latency_ms, evidence_card")
+            .eq("ticket_id", ticket_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
         audit = audit_res.data[0] if audit_res.data else None
         latency = audit["latency_ms"] if audit else None
-        
+
         return {
             "ticket_id": ticket_id,
             "status": ticket["status"],
