@@ -11,37 +11,46 @@ import os
 import sys
 import csv
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../backend'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../backend"))
 
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
 from services.supabase import get_supabase
 
-CSV_PATH = os.path.join(os.path.dirname(__file__), '../data/synthetic_tickets.csv')
+CSV_PATH = os.path.join(os.path.dirname(__file__), "../data/argus_seed_data.csv")
 
 REQUIRED_COLUMNS = {
-    "ticket_id", "description", "category", "severity",
-    "resolution", "resolution_cluster", "user_tier", "department",
-    "signal_a", "signal_b", "signal_c", "auto_resolved", "verified", "created_at"
+    "ticket_id",
+    "description",
+    "category",
+    "severity",
+    "resolution",
+    "resolution_cluster",
+    "user_tier",
+    "department",
+    "auto_resolved",
+    "verified",
+    "created_at",
 }
 
 # Map user_tier to a seeded email for FK lookup
 TIER_EMAIL_MAP = {
-    "vip":        "ceo@argus.local",
-    "standard":   "john.doe@argus.local",
+    "vip": "ceo@argus.local",
+    "standard": "john.doe@argus.local",
     "contractor": "contractor.1@argus.local",
 }
 
 CATEGORY_SYSTEM_MAP = {
-    "Auth/SSO":            "Active Directory",
-    "SAP Issues":          "SAP",
-    "Email Access":        "Email",
-    "VPN Problems":        "VPN",
-    "Printer Issues":      "Printer",
-    "Software Install":    "Software Portal",
-    "Network/Connectivity":"Network",
-    "Permissions/Access":  "Active Directory",
+    "Auth/SSO": "Active Directory",
+    "SAP Issues": "SAP",
+    "Email Access": "Email",
+    "VPN Problems": "VPN",
+    "Printer Issues": "Printer",
+    "Software Install": "Software Portal",
+    "Network/Connectivity": "Network",
+    "Permissions/Access": "Active Directory",
 }
 
 
@@ -84,7 +93,9 @@ def main():
             email = TIER_EMAIL_MAP.get(tier, "john.doe@argus.local")
             user_id = user_cache.get(email)
             if not user_id:
-                print(f"  [WARN] No user found for tier='{tier}', skipping ticket {ticket_id}.")
+                print(
+                    f"  [WARN] No user found for tier='{tier}', skipping ticket {ticket_id}."
+                )
                 skipped += 1
                 continue
 
@@ -99,7 +110,9 @@ def main():
                 "description": row["description"],
                 "category": row["category"],
                 "severity": row["severity"],
-                "status": "auto_resolved" if row["auto_resolved"].lower() == "true" else "resolved",
+                "status": "auto_resolved"
+                if row["auto_resolved"].lower() == "true"
+                else "resolved",
                 "created_at": row["created_at"],
             }
 
@@ -107,15 +120,12 @@ def main():
                 ticket_res = supabase.table("tickets").insert(ticket_row).execute()
                 db_ticket_id = ticket_res.data[0]["id"]
 
-                # Insert outcome
+                # Insert outcome — signal_a/b/c left as NULL for seed data
                 outcome_row = {
                     "ticket_id": db_ticket_id,
                     "category": row["category"],
                     "auto_resolved": row["auto_resolved"].lower() == "true",
                     "sandbox_passed": True,
-                    "signal_a": float(row["signal_a"]),
-                    "signal_b": float(row["signal_b"]),
-                    "signal_c": float(row["signal_c"]),
                     "resolution": row["resolution"],
                     "resolution_cluster": row["resolution_cluster"],
                     "agent_verified": row["verified"].lower() == "true",
