@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { QueueSkeleton } from "@/components/ui/skeleton-loaders";
-import { Badge } from "@/components/ui/badge";
 import { X, Lock } from "lucide-react";
 
 export const TicketHistory = () => {
@@ -176,48 +175,48 @@ export const TicketHistory = () => {
                       {t.description}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={
-                        t.severity === "P1" ? "border-red-500/30 text-red-500 bg-red-500/10" :
-                        t.severity === "P2" ? "border-orange-500/30 text-orange-500 bg-orange-500/10" :
-                        "border-muted-foreground/30 text-muted-foreground"
-                      }>
+                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                        style={
+                          t.severity === "P1" ? { background: '#FEE2E2', color: '#DC2626' } :
+                          t.severity === "P2" ? { background: '#FFEDD5', color: '#EA580C' } :
+                          { background: 'var(--argus-surface-2)', color: 'var(--argus-text-muted)' }
+                        }
+                      >
                         {t.severity}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge variant={
-                          t.status === "resolved" || t.status === "auto_resolved" ? "default" :
-                          t.status === "escalated" ? "secondary" : "secondary"
-                        }
-                        className={
-                          t.status === "resolved" || t.status === "auto_resolved" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20" :
-                          t.status === "escalated" ? "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 border-amber-500/20" :
-                          ""
+                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                        style={
+                          t.status === "resolved" || t.status === "auto_resolved" ? { background: 'rgba(16,185,129,0.1)', color: '#059669' } :
+                          t.status === "escalated" ? { background: 'rgba(245,158,11,0.1)', color: '#92400E' } :
+                          { background: 'var(--argus-surface-2)', color: 'var(--argus-text-muted)' }
                         }
                       >
                         {t.status.replace('_', ' ')}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className="text-center relative group">
                       {t.audit_log ? (
                         <div className="flex items-center justify-center gap-1.5">
-                          <Lock size={14} className="text-emerald-600" />
-                          <span className="text-xs font-medium text-emerald-600">Verified</span>
+                          <Lock size={14} style={{ color: '#059669' }} />
+                          <span className="text-xs font-medium" style={{ color: '#059669' }}>Verified</span>
                           {/* Tooltip */}
-                          <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap z-10 pointer-events-none">
+                          <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 z-10 pointer-events-none"
+                            style={{ background: '#1E293B', color: 'white', borderRadius: '8px', whiteSpace: 'nowrap' }}>
                             <div className="font-mono text-[10px]">
                               SHA-256: {t.audit_log.audit_hash?.slice(0, 16)}...
                             </div>
-                            <div className="text-[10px] text-slate-300">
+                            <div className="text-[10px]" style={{ color: '#CBD5E1' }}>
                               {new Date(t.audit_log.created_at).toLocaleString(undefined, {
                                 month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                               })}
                             </div>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#1E293B' }} />
                           </div>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <span className="text-xs" style={{ color: 'var(--argus-text-muted)' }}>—</span>
                       )}
                     </TableCell>
                   </TableRow>

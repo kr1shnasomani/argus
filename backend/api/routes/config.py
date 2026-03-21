@@ -1,72 +1,325 @@
 import logging
+import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional, Literal, cast
 
 from services.supabase import get_supabase
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["config"])
 
+SYSTEM_DEFINITIONS = [
+    {
+        "id": "supabase",
+        "name": "Supabase",
+        "type": "Database",
+        "method": "GET",
+        "endpoint": "PostgreSQL — SELECT 1",
+    },
+    {
+        "id": "qdrant",
+        "name": "Qdrant",
+        "type": "Vector DB",
+        "method": "GET",
+        "endpoint": "api.qdrant.tech/collections",
+    },
+    {
+        "id": "sandbox",
+        "name": "Sandbox",
+        "type": "Sandbox",
+        "method": "GET",
+        "endpoint": "localhost:8001/health",
+    },
+    {
+        "id": "jina",
+        "name": "Jina AI",
+        "type": "Embeddings",
+        "method": "POST",
+        "endpoint": "api.jina.ai/v1/embeddings",
+    },
+    {
+        "id": "groq",
+        "name": "Groq",
+        "type": "LLM",
+        "method": "POST",
+        "endpoint": "api.groq.com/v1/chat/completions",
+    },
+    {
+        "id": "gemini",
+        "name": "Gemini",
+        "type": "LLM",
+        "method": "POST",
+        "endpoint": "generativelanguage.googleapis.com",
+    },
+    {
+        "id": "openrouter",
+        "name": "OpenRouter",
+        "type": "LLM + Vision",
+        "method": "POST",
+        "endpoint": "openrouter.ai/api/v1/chat/completions",
+    },
+    {
+        "id": "pipeline",
+        "name": "Pipeline",
+        "type": "Backend API",
+        "method": "GET",
+        "endpoint": "localhost:8000/api/config/health",
+    },
+]
 
-@router.get("/api/config/thresholds")
-async def get_all_thresholds():
-    """Returns all category_thresholds rows."""
-    supabase = get_supabase()
+
+async def _check_supabase() -> dict:
+    import time
+
+    start = time.monotonic()
     try:
-        res = supabase.table("category_thresholds").select("*").execute()
-        return res.data
+        supabase = get_supabase()
+        supabase.table("users").select("id").limit(1).execute()
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "operational", "latency_ms": latency_ms}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
 
 
-@router.get("/api/config/thresholds/{category}")
-async def get_threshold_for_category(category: str):
-    """Returns thresholds for a specific category."""
-    supabase = get_supabase()
+async def _check_qdrant() -> dict:
+    import time
+    from services.qdrant import QDRANT_URL, QDRANT_API_KEY
+
+    start = time.monotonic()
     try:
-        res = (
-            supabase.table("category_thresholds")
-            .select("*")
-            .eq("category", category)
-            .execute()
-        )
-        if not res.data:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No thresholds found for category '{category}'.",
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            headers = {"api-key": QDRANT_API_KEY} if QDRANT_API_KEY else {}
+            r = await client.get(f"{QDRANT_URL}/collections", headers=headers)
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
+    except Exception as e:
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
+
+
+async def _check_sandbox() -> dict:
+    import os
+    import time
+
+    url = os.getenv("SANDBOX_URL", "http://localhost:8001")
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            r = await client.get(f"{url}/health")
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
+    except Exception as e:
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
+
+
+async def _check_jina() -> dict:
+    import os
+    import time
+
+    api_key = os.getenv("JINA_API_KEY", "")
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+            r = await client.post(
+                "https://api.jina.ai/v1/embeddings",
+                json={"input": "ping", "model": "jina-embeddings-v3"},
+                headers=headers,
             )
-        return res.data[0]
-    except HTTPException:
-        raise
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
 
 
-@router.get("/api/config/systems")
-async def get_all_systems():
-    """Returns all available systems."""
-    supabase = get_supabase()
+async def _check_groq() -> dict:
+    import os
+    import time
+
+    api_key = os.getenv("GROQ_API_KEY", "")
+    start = time.monotonic()
     try:
-        res = supabase.table("systems").select("id, name").execute()
-        return res.data
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": os.getenv("GROQ_MODEL", "qwen/qwen3-32b"),
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "max_tokens": 1,
+                },
+            )
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
 
 
-@router.get("/api/config/users")
-async def get_users():
-    """Returns all users for employee quick-select."""
-    supabase = get_supabase()
+async def _check_gemini() -> dict:
+    import os
+    import time
+
+    api_key = os.getenv("GOOGLE_GEMINI_API_KEY", "")
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    start = time.monotonic()
     try:
-        res = (
-            supabase.table("users")
-            .select("id, name, email, department, tier")
-            .execute()
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={"contents": [{"parts": [{"text": "ping"}]}]},
+            )
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
+    except Exception as e:
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
+
+
+async def _check_openrouter() -> dict:
+    import os
+    import time
+
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
+    start = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": "http://localhost:8000",
+            }
+            r = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json={
+                    "model": os.getenv(
+                        "OPENROUTER_MODEL", "google/gemma-3-12b-it:free"
+                    ),
+                    "messages": [{"role": "user", "content": "ping"}],
+                    "max_tokens": 1,
+                },
+            )
+            latency_ms = round((time.monotonic() - start) * 1000)
+            if r.status_code == 200:
+                return {"status": "operational", "latency_ms": latency_ms}
+            return {
+                "status": "degraded",
+                "error": f"HTTP {r.status_code}",
+                "latency_ms": latency_ms,
+            }
+    except Exception as e:
+        latency_ms = round((time.monotonic() - start) * 1000)
+        return {"status": "down", "error": str(e), "latency_ms": latency_ms}
+
+
+async def _check_pipeline() -> dict:
+    return {"status": "operational", "latency_ms": 0}
+
+
+@router.get("/api/config/health")
+async def get_system_health(services: Optional[str] = None):
+    """
+    Returns health status for all 8 Argus subsystems.
+
+    Query params:
+      ?services=supabase,qdrant,sandbox,jina,groq,gemini,openrouter,pipeline
+      - Comma-separated list of service IDs to check.
+      - Only these services are checked; others return status "disabled".
+      - If omitted, all services are checked.
+    """
+    import asyncio
+
+    ALL_CHECKS = {
+        "supabase": _check_supabase,
+        "qdrant": _check_qdrant,
+        "sandbox": _check_sandbox,
+        "jina": _check_jina,
+        "groq": _check_groq,
+        "gemini": _check_gemini,
+        "openrouter": _check_openrouter,
+        "pipeline": _check_pipeline,
+    }
+
+    if services:
+        requested = [s.strip() for s in services.split(",") if s.strip()]
+    else:
+        requested = list(ALL_CHECKS.keys())
+
+    enabled_ids = set(requested)
+    pending = {sid: ALL_CHECKS[sid] for sid in ALL_CHECKS if sid in enabled_ids}
+    results_list = await asyncio.gather(
+        *[fn() for fn in pending.values()], return_exceptions=True
+    )
+
+    systems = []
+    all_operational = True
+
+    for sys_def in SYSTEM_DEFINITIONS:
+        sid = sys_def["id"]
+        if sid not in enabled_ids:
+            systems.append(
+                {**sys_def, "status": "disabled", "latency_ms": None, "error": None}
+            )
+            continue
+
+        idx = list(pending.keys()).index(sid)
+        raw_result = results_list[idx]
+        if isinstance(raw_result, Exception):
+            status = "down"
+            all_operational = False
+            latency_ms: Optional[int] = None
+            error: Optional[str] = str(raw_result)
+        else:
+            result = cast(dict, raw_result)
+            status = result.get("status", "down")  # type: ignore[union-attr]
+            latency_ms = result.get("latency_ms")  # type: ignore[union-attr]
+            error = result.get("error")  # type: ignore[union-attr]
+            if status != "operational":
+                all_operational = False
+
+        systems.append(
+            {**sys_def, "status": status, "latency_ms": latency_ms, "error": error}
         )
-        return res.data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"all_operational": all_operational, "systems": systems}
 
 
 class SimulateRequest(BaseModel):
@@ -94,7 +347,6 @@ async def simulate_pipeline(params: SimulateRequest):
     from models.confidence import GateAction, ConfidenceDecision, SignalStatus
     from services.llm import generate_text
     from core.resolution_mapper import map_resolution_to_action
-    from core.sandbox_client import test_in_sandbox
     from uuid import uuid4
     from datetime import datetime, timezone
     import services.qdrant as qdrant_svc
@@ -410,27 +662,18 @@ async def simulate_pipeline(params: SimulateRequest):
             },
         }
 
-    # Step 7: Sandbox Execution — real call
-    cluster_map = app_state.get("cluster_map", {})
-    action_payload = map_resolution_to_action(
-        qdrant_results[0] if qdrant_results else None,
-        cluster_map,
-        "simulate@test.local",
-        category,
-    )
-    sandbox_res = await test_in_sandbox(
-        action_payload.get("action", "restart_service"),
-        action_payload.get("target", "Network"),
-    )
-    sandbox_passed = sandbox_res.get("success", False)
-    sandbox_details = sandbox_res.get("logs", [sandbox_res.get("output", "")])
+    # Step 7: Sandbox Execution — simulation mode always succeeds (dry run, no real sandbox call)
+    sandbox_passed = True
+    sandbox_details = [
+        "Simulation mode: sandbox execution skipped — always passes in dry run"
+    ]
 
     steps.append(
         _step(
             7,
             "Sandbox Execution",
-            "PASS" if sandbox_passed else "FAIL",
-            value=sandbox_passed,
+            "PASS",
+            value=True,
             details=" | ".join(sandbox_details)
             if sandbox_details
             else (

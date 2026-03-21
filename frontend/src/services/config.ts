@@ -38,3 +38,27 @@ export const simulate = async (params: SimulationRequestPayload): Promise<Simula
   const { data } = await api.post<SimulationResponse>("/simulate", params);
   return data;
 };
+
+export type SystemHealthStatus = "operational" | "degraded" | "down" | "disabled";
+
+export interface SystemHealth {
+  id: string;
+  name: string;
+  type: string;
+  method: string;
+  endpoint: string;
+  status: SystemHealthStatus;
+  latency_ms: number | null;
+  error?: string | null;
+}
+
+export type SystemHealthResponse = {
+  all_operational: boolean;
+  systems: SystemHealth[];
+};
+
+export const getSystemHealth = async (opts?: { services?: string }): Promise<SystemHealthResponse> => {
+  const params = opts?.services ? { services: opts.services } : {};
+  const { data } = await api.get<SystemHealthResponse>("/config/health", { params });
+  return data;
+};

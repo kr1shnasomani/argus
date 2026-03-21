@@ -12,6 +12,11 @@ app = FastAPI(
 )
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "operational"}
+
+
 class ActionRequest(BaseModel):
     action: str
     target: str

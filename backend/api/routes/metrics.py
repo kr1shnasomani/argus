@@ -15,10 +15,21 @@ async def get_dashboard_metrics():
     for the last 100 tickets.
     """
     from api.main import app_state
+
     supabase = get_supabase()
     try:
-        # Fetch last 100 ticket outcomes
-        res = supabase.table("ticket_outcomes").select("auto_resolved, sandbox_passed, escalation_reason, override_reason, category, signal_a, created_at").order("created_at", desc=True).limit(100).execute()
+        # Fetch last 100 live pipeline outcomes only (signal_a IS NOT NULL).
+        # Seed data rows have signal_a=NULL and must NOT be counted.
+        res = (
+            supabase.table("ticket_outcomes")
+            .select(
+                "auto_resolved, sandbox_passed, escalation_reason, override_reason, category, signal_a, created_at"
+            )
+            .gte("signal_a", 0)
+            .order("created_at", desc=True)
+            .limit(100)
+            .execute()
+        )
         outcomes = res.data
 
         auto_resolved = sum(1 for o in outcomes if o.get("auto_resolved"))
@@ -34,17 +45,35 @@ async def get_dashboard_metrics():
 
         # override_analysis
         override_analysis = {
-            "missing_context": sum(1 for o in outcomes if o.get("override_reason") == "missing_context"),
-            "incorrect_suggestion": sum(1 for o in outcomes if o.get("override_reason") == "incorrect_suggestion"),
-            "vip_policy": sum(1 for o in outcomes if o.get("override_reason") == "vip_policy"),
-            "novel_issue": sum(1 for o in outcomes if o.get("override_reason") == "novel_issue"),
+            "missing_context": sum(
+                1 for o in outcomes if o.get("override_reason") == "missing_context"
+            ),
+            "incorrect_suggestion": sum(
+                1
+                for o in outcomes
+                if o.get("override_reason") == "incorrect_suggestion"
+            ),
+            "vip_policy": sum(
+                1 for o in outcomes if o.get("override_reason") == "vip_policy"
+            ),
+            "novel_issue": sum(
+                1 for o in outcomes if o.get("override_reason") == "novel_issue"
+            ),
         }
 
         # knowledge_base_coverage
         import services.qdrant as qdrant_svc
-        vector_count = await qdrant_svc.count_vectors() if app_state.get("qdrant_client") else 0
+
+        vector_count = (
+            await qdrant_svc.count_vectors() if app_state.get("qdrant_client") else 0
+        )
         categories = list(set(o["category"] for o in outcomes if o.get("category")))
-        avg_signal_a = (sum(o.get("signal_a", 0) for o in outcomes if o.get("signal_a")) / len(outcomes)) if outcomes else 0.0
+        signal_a_rows = [o for o in outcomes if o.get("signal_a") is not None]
+        avg_signal_a = (
+            (sum(o.get("signal_a", 0) for o in signal_a_rows) / len(signal_a_rows))
+            if signal_a_rows
+            else 0.0
+        )
 
         if vector_count >= 300:
             coverage = "High"
@@ -55,12 +84,12 @@ async def get_dashboard_metrics():
 
         # drift_monitor
         drift_monitor = {}
-        for cat in categories[:5]: 
+        for cat in categories[:5]:
             drift_monitor[cat] = {
-                "signal_trend": 0.85, 
+                "signal_trend": 0.85,
                 "baseline": 0.88,
                 "trend_direction": "down",
-                "status": "warning"
+                "status": "warning",
             }
 
         return {
@@ -72,7 +101,7 @@ async def get_dashboard_metrics():
                 "avg_similarity": round(avg_signal_a, 4),
                 "coverage_level": coverage,
             },
-            "drift_monitor": drift_monitor
+            "drift_monitor": drift_monitor,
         }
     except Exception as e:
         logger.error(f"Dashboard metrics failed: {e}", exc_info=True)
@@ -90,13 +119,24 @@ async def get_coverage_metrics():
     qdrant_client = app_state["qdrant_client"]
     try:
         import services.qdrant as qdrant_svc
+
         vector_count = await qdrant_svc.count_vectors()
 
         # Unique categories from recent outcomes
-        res = supabase.table("ticket_outcomes").select("category, signal_a").order("created_at", desc=True).limit(50).execute()
+        res = (
+            supabase.table("ticket_outcomes")
+            .select("category, signal_a")
+            .order("created_at", desc=True)
+            .limit(50)
+            .execute()
+        )
         outcomes = res.data
         categories = list(set(o["category"] for o in outcomes if o.get("category")))
-        avg_signal_a = (sum(o.get("signal_a", 0) for o in outcomes) / len(outcomes)) if outcomes else 0.0
+        avg_signal_a = (
+            (sum(o.get("signal_a", 0) for o in outcomes) / len(outcomes))
+            if outcomes
+            else 0.0
+        )
 
         if vector_count >= 300:
             coverage = "High"
@@ -128,9 +168,22 @@ async def get_drift_metrics():
         prev_7 = (now - timedelta(days=14)).isoformat()
 
         # Last 7 days
-        recent = supabase.table("ticket_outcomes").select("category, auto_resolved").gte("created_at", last_7).execute().data
+        recent = (
+            supabase.table("ticket_outcomes")
+            .select("category, auto_resolved")
+            .gte("created_at", last_7)
+            .execute()
+            .data
+        )
         # Previous 7 days
-        older = supabase.table("ticket_outcomes").select("category, auto_resolved").gte("created_at", prev_7).lt("created_at", last_7).execute().data
+        older = (
+            supabase.table("ticket_outcomes")
+            .select("category, auto_resolved")
+            .gte("created_at", prev_7)
+            .lt("created_at", last_7)
+            .execute()
+            .data
+        )
 
         def accuracy(records):
             if not records:
@@ -143,7 +196,11 @@ async def get_drift_metrics():
                 by_cat[cat]["total"] += 1
                 if r.get("auto_resolved"):
                     by_cat[cat]["resolved"] += 1
-            return {k: v["resolved"] / v["total"] for k, v in by_cat.items() if v["total"] > 0}
+            return {
+                k: v["resolved"] / v["total"]
+                for k, v in by_cat.items()
+                if v["total"] > 0
+            }
 
         recent_acc = accuracy(recent)
         older_acc = accuracy(older)
@@ -154,13 +211,15 @@ async def get_drift_metrics():
             r = recent_acc.get(cat, 0.0)
             o = older_acc.get(cat, 0.0)
             drift = r - o
-            drift_results.append({
-                "category": cat,
-                "recent_7d_accuracy": round(r, 4),
-                "prev_7d_accuracy": round(o, 4),
-                "drift": round(drift, 4),
-                "status": "⚠️ Drifting" if abs(drift) > 0.10 else "✅ Stable",
-            })
+            drift_results.append(
+                {
+                    "category": cat,
+                    "recent_7d_accuracy": round(r, 4),
+                    "prev_7d_accuracy": round(o, 4),
+                    "drift": round(drift, 4),
+                    "status": "⚠️ Drifting" if abs(drift) > 0.10 else "✅ Stable",
+                }
+            )
 
         drift_results.sort(key=lambda x: x["drift"])
         return drift_results

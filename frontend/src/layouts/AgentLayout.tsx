@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layers, LayoutDashboard, Terminal, ChevronRight, Home, Sparkles, Radio, Archive } from 'lucide-react';
+import { Layers, LayoutDashboard, Terminal, ChevronRight, Home, Sparkles, Archive, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
@@ -10,6 +10,7 @@ export const AgentLayout = () => {
     { name: 'Escalated Queue', path: '/agent', icon: Layers, desc: 'Pending review', count: null },
     { name: 'All Tickets', path: '/agent/history', icon: Archive, desc: 'Ticket history', count: null },
     { name: 'Metrics', path: '/agent/metrics', icon: LayoutDashboard, desc: 'System telemetry', count: null },
+    { name: 'System Health', path: '/agent/health', icon: Activity, desc: 'Service monitoring', count: null },
     { name: 'Simulator', path: '/agent/simulator', icon: Terminal, desc: 'What-if engine', count: null },
   ];
 
@@ -53,25 +54,6 @@ export const AgentLayout = () => {
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* System status strip */}
-        <div className="px-4 py-2.5 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
-          <div 
-            className="flex items-center gap-2 px-3 py-2 rounded-lg"
-            style={{ background: 'var(--argus-emerald-light)' }}
-          >
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--argus-emerald)', flexShrink: 0 }} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-semibold" style={{ color: 'var(--argus-emerald)' }}>
-                All Systems Operational
-              </div>
-              <div className="text-[10px]" style={{ color: 'var(--argus-text-muted)' }}>
-                Pipeline • Sandbox • Vector DB
-              </div>
-            </div>
-            <Radio size={12} style={{ color: 'var(--argus-emerald)' }} className="flex-shrink-0 opacity-60" />
           </div>
         </div>
 

@@ -11,25 +11,33 @@ Argus is an intelligent IT ticket handling platform with confidence-based human-
 The project source-of-truth design document is [SOLUTION.md](SOLUTION.md). This README is intentionally concise and operational.
 
 ## What Argus Does
-- Accepts tickets from employees.
-- Runs a multi-stage decision pipeline.
-- Auto-resolves only when policy + confidence + sandbox checks pass.
-- Escalates uncertain or unsafe tickets to agents with evidence.
-- Learns from agent-verified fixes.
+- Accepts tickets from employees via the Employee portal.
+- Runs a multi-stage decision pipeline (Policy Gate → Vector DB → Signal A/B/C → Sandbox).
+- Auto-resolves only when all confidence signals pass AND sandbox validation succeeds.
+- Escalates uncertain or high-priority tickets to agents with full evidence trace.
+- Agents resolve escalated tickets; verified fixes are upserted into the knowledge base.
+- Monitors all 8 subsystems in real-time via the System Health dashboard.
 
-## Repositories and Main Folders
-```text
+## Project Structure
+```
 argus/
-├── backend/      FastAPI application and pipeline logic
-├── frontend/     React portals (employee + agent)
-├── sandbox/      Canary execution service
-├── scripts/      Seeding and operational scripts
-├── tests/        Automated tests
-├── database/     SQL schema and DB setup
-├── context/      Signal/stage/implementation context docs
-├── API.md        Full API reference
-├── DATABASE.md   Supabase + Qdrant reference
-└── SOLUTION.md   Authoritative solution blueprint (do not modify)
+├── backend/           FastAPI application (port 8000)
+│   ├── api/routes/    tickets, agent, config, metrics, audit
+│   ├── core/         pipeline, policy_gate, confidence, novelty, embedder, retriever
+│   ├── services/      supabase, qdrant, jina, llm, vision, storage
+│   ├── models/        pydantic models
+│   └── utils/         audit_hash, cluster_map, timestamps
+├── sandbox/           Canary execution service (port 8001)
+├── frontend/src/      React portals
+│   ├── pages/agent/   EscalatedQueue, EvidenceCardView, TicketHistory,
+│   │                  SystemHealth, MetricsDashboard, WhatIfSimulator, AuditLog
+│   ├── pages/employee/ UserSelectGrid, SubmitTicket, TicketStatus
+│   ├── layouts/       AgentLayout, EmployeeLayout
+│   ├── services/      agent, tickets, config, metrics, audit
+│   └── components/ui/ shadcn/ui primitives
+├── tests/             pytest unit and integration tests
+├── scripts/            seeding and operational scripts
+└── data/              synthetic data CSV and cluster_map.json
 ```
 
 ## Quick Start
@@ -57,22 +65,22 @@ npm run dev
 
 ## Required Environment Variables
 
-Set these for backend runtime:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_KEY`
-- `QDRANT_URL`
-- `QDRANT_API_KEY`
-- `QDRANT_COLLECTION_NAME` (optional; defaults to `resolved_tickets`)
+Backend runtime:
+- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
+- `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION_NAME` (defaults to `resolved_tickets`)
 - `JINA_API_KEY`
-- `OPENROUTER_API_KEY` (and/or Groq/Gemini keys per fallback chain)
+- `GROQ_API_KEY`, `GROQ_MODEL`
+- `GOOGLE_GEMINI_API_KEY`, `GEMINI_MODEL`
+- `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
+- `SANDBOX_URL` (defaults to `http://localhost:8001`)
 
 ## Documentation Index
-- API reference: [API.md](API.md)
-- Data stores and schema: [DATABASE.md](DATABASE.md)
-- Signal details: [context/SIGNALS.md](context/SIGNALS.md)
-- Pipeline stage details: [context/PIPELINE_STAGES.md](context/PIPELINE_STAGES.md)
-- Implementation context: [context/IMPLEMENTATION_CONTEXT.md](context/IMPLEMENTATION_CONTEXT.md)
-- Full solution blueprint: [SOLUTION.md](SOLUTION.md)
+- [API.md](API.md) — Full API reference
+- [DATABASE.md](DATABASE.md) — Supabase + Qdrant schema
+- [SIGNALS.md](SIGNALS.md) — Signal A/B/C definitions
+- [PIPELINE_STAGES.md](PIPELINE_STAGES.md) — Pipeline stage details
+- [IMPLEMENTATION_CONTEXT.md](IMPLEMENTATION_CONTEXT.md) — Technical implementation reference
+- [SOLUTION.md](SOLUTION.md) — Authoritative design blueprint (do not modify)
 
 ## Notes
 - Keep `SOLUTION.md` unchanged unless explicitly requested by project owners.

@@ -6,7 +6,7 @@
 
 ## 1. Project Context
 
-Argus is an intelligent IT support ticket auto-handling system with confidence-based Human-in-the-Loop (HITL) escalation. Two web portals: **Employee** (submit tickets, view status) and **Agent** (review escalated tickets, submit resolutions, monitor metrics), backed by a multi-layered decision pipeline that auto-resolves tickets only when three independent confidence signals pass AND a live sandbox test succeeds.
+Argus is an intelligent IT support ticket auto-handling system with confidence-based Human-in-the-Loop (HITL) escalation. Two web portals: **Employee** (submit tickets, view status) and **Agent** (review escalated tickets, submit resolutions, monitor metrics, run simulations, monitor system health), backed by a multi-layered decision pipeline that auto-resolves tickets only when three independent confidence signals pass AND a live sandbox test succeeds.
 
 ---
 
@@ -20,18 +20,16 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 | **`SIGNALS.md`** | Confidence signal definitions (Signal A/B/C). |
 | **`DATABASE.md`** | Database schema and table reference. |
 | **`API.md`** | API endpoint reference. |
-| **`MEMORY.md`** | **Read this first.** Current project state, what has been built, next tasks. |
-| **`RULES.md`** | Operational guardrails. Must follow all rules. |
+| **`AGENTS.md`** | This file — operational instructions for AI agents. |
 
 ---
 
 ## 3. Development Workflow
 
-1. **Read `MEMORY.md` first.** Understand what has been built and what the next task is.
-2. **Read the relevant spec file(s)** for the task at hand (e.g., `PIPELINE_STAGES.md` for pipeline changes, `DATABASE.md` for schema changes).
-3. **Work module-by-module.** Implement one module, verify it, then move on.
-4. **Minimal first, robust second.** Happy path before error handling.
-5. **Keep modules independent.** Backend `core/` modules must be testable in isolation with mocked services.
+1. **Read the relevant spec file(s)** for the task at hand (e.g., `PIPELINE_STAGES.md` for pipeline changes, `DATABASE.md` for schema changes).
+2. **Work module-by-module.** Implement one module, verify it, then move on.
+3. **Minimal first, robust second.** Happy path before error handling.
+4. **Keep modules independent.** Backend `core/` modules must be testable in isolation with mocked services.
 
 ---
 
@@ -45,6 +43,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 | `react-components` | Converting designs into modular React components with proper structure. |
 | `frontend-design` | Building polished, production-grade frontend pages that avoid generic aesthetics. |
 | `web-design-guidelines` | Reviewing UI for accessibility, usability, and design best practices. |
+| `find-skills` | Finding installable skills for specific tasks. |
 
 - **Always prefer an existing skill** over recreating patterns from scratch.
 - Read the skill's `SKILL.md` before using it.
@@ -53,7 +52,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 
 | MCP Server | When to Use |
 |---|---|
-| **Supabase MCP (`supabase_argus_*`)** | Apply migrations, execute SQL, list tables — use instead of writing raw SQL by hand. |
+| **Supabase Argus (`supabase_argus_*`)** | Apply migrations, execute SQL, list tables — use instead of writing raw SQL by hand. |
 | **Context7** | Look up library docs (FastAPI, Pydantic, Qdrant SDK, React, shadcn, etc.) before writing integration code. |
 | **BrowserMCP** | Visually test and verify frontend pages. |
 | **21st.dev Magic** | Generate or refine UI components. |
@@ -66,7 +65,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 - **Do not invent new architecture.** Follow the existing module boundaries and directory structure.
 - **Respect the tech stack.** Python 3.11+, FastAPI, async. React 18+, TypeScript, Vite, shadcn/ui, Tailwind CSS.
 - **Do not refactor broadly.** Avoid restructuring directories or changing data flow unless the task specifically requires it.
-- **Preserve pipeline layer order.** The 5-layer pipeline (Policy Gate → Vector DB Novelty → Signal A → Signal B → Signal C → Sandbox) must always execute in sequence.
+- **Preserve pipeline layer order.** The 6-layer pipeline (Policy Gate → Vector DB Novelty → Signal A → Signal B → Signal C → Sandbox) must always execute in sequence.
 - **Respect escalation safety.** If any component fails or is unavailable (Qdrant down, sandbox unreachable, LLM timeout), the system **must default to escalation**. Never auto-resolve when uncertain.
 - **Audit trail.** Every decision must produce a SHA-256 hash chained to the previous entry in `audit_log`.
 
@@ -77,19 +76,32 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 ```
 argus/
 ├── backend/
-│   ├── api/routes/        # FastAPI route handlers (agent.py, tickets.py, config.py)
-│   ├── core/              # Pipeline logic (pipeline.py, policy_gate.py, confidence.py, novelty.py)
-│   ├── services/          # External service clients (jina.py, qdrant.py, llm.py, supabase.py)
-│   ├── models/            # Pydantic data models (ticket.py)
-│   └── utils/             # Hashing, clustering, timestamps
-├── sandbox/               # Isolated sandbox server (port 8001)
-├── frontend/src/          # React + shadcn/ui (Vite + TypeScript)
-│   ├── pages/employee/    # UserSelectGrid.tsx, SubmitTicket.tsx
-│   ├── pages/agent/       # EvidenceCardView.tsx, EscalatedQueue.tsx, TicketHistory.tsx
-│   ├── services/          # API client functions (agent.ts, tickets.ts, config.ts)
-│   └── types/             # TypeScript type definitions
-├── tests/                 # pytest unit and integration tests
-└── data/                  # Synthetic data CSV and cluster_map.json
+│   ├── api/routes/       FastAPI route handlers
+│   │                     tickets.py, agent.py, config.py, metrics.py, audit.py
+│   ├── core/             Pipeline logic
+│   │                     pipeline.py, policy_gate.py, confidence.py, novelty.py
+│   │                     embedder.py, retriever.py, resolution_mapper.py
+│   │                     sandbox_client.py
+│   ├── services/         External service clients
+│   │                     supabase.py, qdrant.py, jina.py, llm.py, vision.py
+│   │                     storage.py
+│   ├── models/           Pydantic data models (ticket.py, user.py, etc.)
+│   └── utils/            audit_hash.py, cluster_map.py, timestamps.py
+├── sandbox/              Isolated sandbox server (port 8001)
+│                        main.py, actions.py, environment.py
+├── frontend/src/
+│   ├── pages/agent/      EscalatedQueue.tsx, EvidenceCardView.tsx
+│   │                     TicketHistory.tsx, SystemHealth.tsx
+│   │                     MetricsDashboard.tsx, WhatIfSimulator.tsx, AuditLog.tsx
+│   ├── pages/employee/   UserSelectGrid.tsx, SubmitTicket.tsx, TicketStatus.tsx
+│   ├── pages/landing/    LandingPage.tsx
+│   ├── layouts/          AgentLayout.tsx, EmployeeLayout.tsx
+│   ├── components/       landing/*, motion/*, ui/*
+│   ├── services/         agent.ts, tickets.ts, config.ts, metrics.ts, audit.ts
+│   └── types/            TypeScript type definitions
+├── tests/                pytest unit and integration tests
+├── scripts/              seeding and operational scripts
+└── data/                 synthetic data CSV and cluster_map.json
 ```
 
 ---
@@ -119,7 +131,7 @@ argus/
 ## 9. Key Technical Constraints
 
 - **Two servers:** Main backend on port `8000`, sandbox on port `8001`
-- **External services (free tier):** Jina AI, Qdrant Cloud, Supabase, OpenRouter (Gemma 3 27B)
+- **External services (free tier):** Jina AI, Qdrant Cloud, Supabase, Groq, Gemini, OpenRouter
 - **Fail-safe principle:** Any error or unavailability → escalate to human. Never auto-resolve when uncertain.
 - **Hardcode hex colors** in React components rather than CSS variables to avoid dark/light mode contrast issues.
 - **Match the Argus design system:** `--argus-*` CSS variables, Inter font, DM Mono for monospace, Tailwind, Framer Motion.
@@ -136,9 +148,9 @@ argus/
 
 **Adding a new frontend page:**
 1. Read the `shadcn-ui` and `frontend-design` skills first
-2. Create page component in `frontend/src/pages/`
+2. Create page component in `frontend/src/pages/agent/` or `frontend/src/pages/employee/`
 3. Add API service function in `frontend/src/services/`
-4. Add route in the router config
+4. Add route in the router config (`App.tsx`)
 5. Use shadcn/ui components — do not build custom UI primitives
 
 **Database changes:**

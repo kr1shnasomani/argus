@@ -94,12 +94,6 @@ async def process_ticket(
     ) -> Dict[str, Any]:
         latency = stop_timer(pipeline_start)
 
-        # Update ticket status (and resolved_at if resolved)
-        ticket_updates = {"status": status}
-        if status in ("auto_resolved", "resolved"):
-            ticket_updates["resolved_at"] = datetime.now(timezone.utc).isoformat()
-        supabase_client.update_ticket(ticket["id"], ticket_updates)
-
         # Extract action_payload before building result dict
         action_payload = extra.get("action_payload", {}) if extra else {}
         result = {
@@ -160,10 +154,42 @@ async def process_ticket(
             "retrospective_match": None,
         }
 
+        # INSERT ticket_outcomes FIRST — before touching ticket status.
+        # If this fails, the ticket must NOT be marked auto_resolved.
         try:
             supabase_client.table("ticket_outcomes").insert(outcome_data).execute()
         except Exception as e:
-            logger.error(f"Failed to insert ticket_outcome: {e}")
+            logger.error(f"Failed to insert ticket_outcome: {e}", exc_info=True)
+            # Re-raise so ticket status never gets set to auto_resolved without an outcome row.
+            # Return an escalation result instead.
+            error_result = {
+                "ticket_id": ticket["id"],
+                "status": "escalated",
+                "action": _json_safe(action),
+                "reason": f"System error: outcome record failed to write. Original reason: {reason}",
+                "latency_ms": latency,
+                "logs": logs,
+                "resolution": None,
+            }
+            if extra:
+                error_result.update(_json_safe(extra))
+            # Write the outcome with the error reason
+            error_outcome = {
+                **outcome_data,
+                "auto_resolved": False,
+                "escalation_reason": f"System error: {e}",
+            }
+            try:
+                supabase_client.table("ticket_outcomes").insert(error_outcome).execute()
+            except Exception:
+                pass  # Already logged; cannot recover further
+            return error_result
+
+        # Only update ticket status after ticket_outcomes is confirmed written.
+        ticket_updates = {"status": status}
+        if status in ("auto_resolved", "resolved"):
+            ticket_updates["resolved_at"] = datetime.now(timezone.utc).isoformat()
+        supabase_client.update_ticket(ticket["id"], ticket_updates)
 
         # Generate evidence card and write audit log for ALL tickets
         try:

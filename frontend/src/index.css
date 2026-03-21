@@ -558,12 +558,16 @@ body {
 /* Live indicator */
 .live-indicator {
   position: relative;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
 }
 
 .live-indicator::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: 0;
   border-radius: 50%;
   background: var(--argus-emerald);
   opacity: 0;
