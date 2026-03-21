@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { getUsers, type User } from "@/services/config";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle } from "lucide-react";
 
 const stagger = {
   hidden: { opacity: 0 },

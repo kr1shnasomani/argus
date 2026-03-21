@@ -263,7 +263,9 @@ class AgentResolution(BaseModel):
     resolution_text: str
     resolution_type: str  # "verified", "workaround", or "uncertain"
     override_reason: Optional[str] = None
-    accept_suggestion: bool = False  # true when agent clicks "Accept AI Resolution"
+    accept_suggestion: bool = False
+
+    model_config = {"extra": "ignore"}
 
 
 @router.post("/{ticket_id}/resolve")
@@ -469,9 +471,21 @@ async def submit_correction(ticket_id: str, payload: dict):
                 "resolution": corrected,
                 "retrospective_match": False,
                 "agent_verified": True,
+                "auto_resolved": False,
                 "override_reason": "Incorrect auto-resolution — agent corrected",
             }
         ).eq("ticket_id", ticket_id).execute()
+
+        # Sync tickets table: status + auto_resolved
+        from datetime import datetime, timezone
+
+        supabase.table("tickets").update(
+            {
+                "status": "resolved",
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+                "auto_resolved": False,
+            }
+        ).eq("id", ticket_id).execute()
 
         # If agent marked as verified reusable, upsert into Qdrant so AI learns the corrected fix
         if resolution_type == "verified":

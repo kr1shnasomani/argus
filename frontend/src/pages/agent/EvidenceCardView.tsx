@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { resolveTicket, getTicketEvidence, submitCorrection, markAgentVerified } from "@/services/agent";
@@ -18,7 +18,7 @@ export const EvidenceCardView = () => {
   const navigate = useNavigate();
 
   const [resolutionText, setResolutionText] = useState("");
-  const [resolutionType, setResolutionType] = useState<"reusable" | "workaround" | "uncertain">("reusable");
+  const [resolutionType, setResolutionType] = useState<"verified" | "workaround" | "uncertain">("verified");
   const [overrideReason, setOverrideReason] = useState<string>("");
 
   const { data: card, isLoading, isError } = useQuery({
@@ -110,17 +110,10 @@ export const EvidenceCardView = () => {
   const [correctionType, setCorrectionType] = useState<"verified" | "workaround">("verified");
   const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
   const [correctionSuccess, setCorrectionSuccess] = useState<string | null>(null);
-  const [resolutionMode, setResolutionMode] = useState<"accept" | "override">("override");
 
-  // Pre-fill resolution textarea with AI suggestion for escalated tickets
   const aiSuggestion = card?.outcome?.ai_suggestion;
-  useEffect(() => {
-    if (card?.status === "escalated" && aiSuggestion && !resolutionText) {
-      setResolutionText(aiSuggestion);
-    }
-  }, [card?.status, aiSuggestion]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmitResolution = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !resolutionText) return;
     resolveMutation.mutate({
@@ -131,11 +124,10 @@ export const EvidenceCardView = () => {
     });
   };
 
-  const handleAcceptAiResolution = (e: React.FormEvent) => {
+  const handleAcceptSuggestion = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !aiSuggestion) return;
     setResolutionText(aiSuggestion);
-    setResolutionMode("accept");
     resolveMutation.mutate({
       ticket_id: id,
       resolution: aiSuggestion,
@@ -143,13 +135,6 @@ export const EvidenceCardView = () => {
       override_reason: null,
       accept_suggestion: true,
     });
-  };
-
-  const handleSubmitDifferentResolution = (e: React.FormEvent) => {
-    e.preventDefault();
-    setResolutionMode("override");
-    setResolutionText("");
-    setOverrideReason("");
   };
 
   if (isLoading) {
@@ -353,123 +338,31 @@ export const EvidenceCardView = () => {
                 </div>
               </div>
 
-              {/* How Argus Decided — Explainable AI Panel */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--argus-text-muted)' }}>
-                  <Activity size={12} /> How Argus Decided
-                </h4>
-
-                {/* Signal A/B/C Breakdown */}
-                {card.status === "auto_resolved" || signalA != null || signalB != null || signalC != null ? (
-                  <div className="space-y-2.5 mb-4">
-                    {/* Signal A */}
-                    {signalA != null && signalAThreshold != null && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal A — Semantic Similarity</span>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
-                              {signalA.toFixed(3)}
-                            </span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalA >= signalAThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                              {signalA >= signalAThreshold ? 'PASS' : 'FAIL'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(100, (signalA / (signalAThreshold * 2)) * 100)}%`,
-                              background: signalA >= signalAThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalAThreshold.toFixed(2)} · found similar past incident</p>
-                      </div>
-                    )}
-
-                    {/* Signal B */}
-                    {signalB != null && signalBThreshold != null && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal B — Resolution Consistency</span>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
-                              {signalB.toFixed(3)}
-                            </span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalB >= signalBThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                              {signalB >= signalBThreshold ? 'PASS' : 'FAIL'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(100, (signalB / (signalBThreshold * 2)) * 100)}%`,
-                              background: signalB >= signalBThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalBThreshold.toFixed(2)} · cluster pattern confirmed</p>
-                      </div>
-                    )}
-
-                    {/* Signal C */}
-                    {signalC != null && signalCThreshold != null && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Signal C — Category Accuracy</span>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-semibold" style={{ color: signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)' }}>
-                              {signalC.toFixed(3)}
-                            </span>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${signalC >= signalCThreshold ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                              {signalC >= signalCThreshold ? 'PASS' : 'FAIL'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ background: 'var(--argus-border)' }}>
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{
-                              width: `${Math.min(100, (signalC / (signalCThreshold * 2)) * 100)}%`,
-                              background: signalC >= signalCThreshold ? 'var(--argus-emerald)' : 'var(--argus-red)',
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>threshold: {signalCThreshold.toFixed(2)} · category label verified</p>
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-
-                {/* Why This Decision */}
-                <div className="rounded-xl border p-3.5" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--argus-text-muted)' }}>Why This Decision</p>
-                  <p className="text-xs leading-relaxed" style={{ color: 'var(--argus-text-primary)' }}>
-                    {card.status === 'auto_resolved'
-                      ? 'All three confidence signals exceeded their thresholds and sandbox tests passed. Argus executed the most-similar past resolution automatically.'
-                      : policyGateEscalation
-                      ? 'The Policy Gate escalated this ticket before AI processing — likely due to VIP tier, P1/P2 severity, or a policy-matched keyword.'
-                      : interceptedLayer === 2
-                      ? 'The Vector DB Novelty Check detected insufficient similarity to known resolutions. Escalated to human for a novel approach.'
-                      : interceptedLayer === 3
-                      ? `Signal A (Semantic Similarity) fell below its threshold (${signalA?.toFixed(3) ?? '?'} < ${signalAThreshold?.toFixed(2) ?? '?'}). No closely matching past incidents.`
-                      : interceptedLayer === 4
-                      ? `Signal B (Resolution Consistency) fell below threshold (${signalB?.toFixed(3) ?? '?'} < ${signalBThreshold?.toFixed(2) ?? '?'}). Inconsistent resolution pattern in cluster.`
-                      : interceptedLayer === 5
-                      ? `Signal C (Category Accuracy) fell below threshold (${signalC?.toFixed(3) ?? '?'} < ${signalCThreshold?.toFixed(2) ?? '?'}). Ticket may be miscategorized.`
-                      : interceptedLayer === 6
-                      ? 'Sandbox validation failed. The proposed resolution did not execute successfully in the isolated test environment.'
-                      : escalationReason || 'Escalated due to insufficient confidence signals or sandbox failure. Agent review required.'}
-                  </p>
-                </div>
+              {/* Why This Decision */}
+              <div className="rounded-xl border p-3.5 mb-4" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
+                <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--argus-text-muted)' }}>Why This Decision</p>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--argus-text-primary)' }}>
+                  {card.status === 'auto_resolved'
+                    ? 'All three confidence signals exceeded their thresholds and sandbox tests passed. Argus executed the most-similar past resolution automatically.'
+                    : policyGateEscalation
+                    ? 'The Policy Gate escalated this ticket before AI processing — likely due to VIP tier, P1/P2 severity, or a policy-matched keyword.'
+                    : interceptedLayer === 2
+                    ? 'The Vector DB Novelty Check detected insufficient similarity to known resolutions. Escalated to human for a novel approach.'
+                    : interceptedLayer === 3
+                    ? `Signal A (Semantic Similarity) fell below its threshold. No closely matching past incidents found.`
+                    : interceptedLayer === 4
+                    ? `Signal B (Resolution Consistency) fell below threshold. Inconsistent resolution pattern in cluster.`
+                    : interceptedLayer === 5
+                    ? `Signal C (Category Accuracy) fell below threshold. Ticket may be miscategorized.`
+                    : interceptedLayer === 6
+                    ? 'Sandbox validation failed. The proposed resolution did not execute successfully in the isolated test environment.'
+                    : escalationReason || 'Escalated due to insufficient confidence signals or sandbox failure. Agent review required.'}
+                </p>
+              </div>
 
                 {/* Top 3 Similar Past Incidents */}
                 {candidateFixes && candidateFixes.length > 0 && (
-                  <div className="mt-4">
+                  <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: 'var(--argus-text-muted)' }}>
                       <BookOpen size={11} /> Similar Past Incidents
                     </p>
@@ -503,13 +396,12 @@ export const EvidenceCardView = () => {
                 )}
 
                 {(!candidateFixes || candidateFixes.length === 0) && card.status === 'escalated' && (
-                  <div className="mt-3 p-3.5 rounded-xl border text-xs" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                  <div className="p-3.5 rounded-xl border text-xs" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
                     {policyGateEscalation
                       ? 'Policy Gate escalated before candidate evaluation.'
                       : 'No similar past incidents found — this appears to be a novel issue.'}
                   </div>
                 )}
-              </div>
 
               {/* Latency */}
               <div className="flex items-center gap-2 pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
@@ -612,7 +504,7 @@ export const EvidenceCardView = () => {
             ) : (
               <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
                 <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, var(--argus-indigo) 0%, #7C3AED 100%)' }} />
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmitResolution}>
                   <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
                     <h3 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Submit Human Resolution</h3>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>Resolve this ticket and train the Argus model.</p>
@@ -622,14 +514,9 @@ export const EvidenceCardView = () => {
                   {/* Resolution Text */}
                     {card.outcome && card.outcome.ai_suggestion && (
                       <div className="rounded-xl border p-3.5 mb-2" style={{ background: 'linear-gradient(90deg, #EEF2FF 0%, #F5F3FF 100%)', borderColor: 'rgba(124,58,237,0.12)' }}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-xs font-semibold" style={{ color: 'var(--argus-indigo)' }}>🤖 AI SUGGESTED RESOLUTION</div>
-                            <p className="text-sm mt-1" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome.ai_suggestion}</p>
-                          </div>
-                          <div>
-                            <Button variant="outline" onClick={() => setResolutionText(card.outcome?.ai_suggestion || "")}>✓ Use This Solution</Button>
-                          </div>
+                        <div>
+                          <div className="text-xs font-semibold" style={{ color: 'var(--argus-indigo)' }}>🤖 AI SUGGESTED RESOLUTION</div>
+                          <p className="text-sm mt-1" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome.ai_suggestion}</p>
                         </div>
                       </div>
                     )}
@@ -652,24 +539,59 @@ export const EvidenceCardView = () => {
                     <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Feedback Type to AI</Label>
                     <RadioGroup value={resolutionType} onValueChange={(val: any) => setResolutionType(val)} className="space-y-2">
                       {[
-                        { value: 'reusable', label: 'Verified Reusable Fix', desc: 'Embeds into vector knowledge base to train AI.', accent: 'var(--argus-indigo-light)', border: 'rgba(79,70,229,0.3)' },
-                        { value: 'workaround', label: 'Temporary Workaround', desc: 'Resolves ticket but AI will not learn from it.', accent: 'var(--argus-amber-light)', border: 'rgba(217,119,6,0.2)' },
-                        { value: 'uncertain', label: 'Uncertain / Site-Specific', desc: 'Highly specific — do NOT train AI.', accent: 'var(--argus-surface-2)', border: 'var(--argus-border)' },
+                        {
+                          value: 'verified',
+                          label: 'Verified Reusable Fix',
+                          desc: 'Embeds into vector knowledge base to train AI.',
+                          accent: 'rgba(16, 185, 129, 0.1)',
+                          border: 'rgba(16, 185, 129, 0.35)',
+                          selectedBorder: '#10B981',
+                          dotColor: '#10B981',
+                          textColor: '#065F46',
+                        },
+                        {
+                          value: 'workaround',
+                          label: 'Temporary Workaround',
+                          desc: 'Resolves ticket but AI will not learn from it.',
+                          accent: 'rgba(245, 158, 11, 0.1)',
+                          border: 'rgba(245, 158, 11, 0.35)',
+                          selectedBorder: '#F59E0B',
+                          dotColor: '#F59E0B',
+                          textColor: '#92400E',
+                        },
+                        {
+                          value: 'uncertain',
+                          label: 'Uncertain / Site-Specific',
+                          desc: 'Highly specific — do NOT train AI.',
+                          accent: 'rgba(244, 63, 94, 0.08)',
+                          border: 'rgba(244, 63, 94, 0.3)',
+                          selectedBorder: '#F43F5E',
+                          dotColor: '#F43F5E',
+                          textColor: '#9F1239',
+                        },
                       ].map(opt => (
-                        <div
+                        <label
                           key={opt.value}
+                          htmlFor={`r-${opt.value}`}
                           className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all"
-                          style={{ background: resolutionType === opt.value ? opt.accent : 'var(--argus-surface-2)', borderColor: resolutionType === opt.value ? opt.border : 'var(--argus-border)' }}
-                          onClick={() => setResolutionType(opt.value as any)}
+                          style={{
+                            background: resolutionType === opt.value ? opt.accent : 'var(--argus-surface-2)',
+                            borderColor: resolutionType === opt.value ? opt.selectedBorder : 'var(--argus-border)',
+                          }}
                         >
-                          <RadioGroupItem value={opt.value} id={`r-${opt.value}`} className="mt-0.5" />
+                          <RadioGroupItem
+                            value={opt.value}
+                            id={`r-${opt.value}`}
+                            className="mt-0.5"
+                            style={{ accentColor: opt.dotColor }}
+                          />
                           <div>
-                            <Label htmlFor={`r-${opt.value}`} className="font-semibold text-xs cursor-pointer" style={{ color: 'var(--argus-text-primary)' }}>
+                            <span className="font-semibold text-xs" style={{ color: resolutionType === opt.value ? opt.textColor : 'var(--argus-text-primary)' }}>
                               {opt.label}
-                            </Label>
+                            </span>
                             <p className="text-[11px] mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>{opt.desc}</p>
                           </div>
-                        </div>
+                        </label>
                       ))}
                     </RadioGroup>
                   </div>
@@ -679,15 +601,15 @@ export const EvidenceCardView = () => {
                   {/* Override Reason */}
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>
-                      Override Context <span style={{ color: 'var(--argus-text-muted)', fontWeight: 400 }}>(optional)</span>
+                      Resolution Context <span style={{ color: 'var(--argus-text-muted)', fontWeight: 400 }}>(optional)</span>
                     </Label>
                     <Select value={overrideReason} onValueChange={setOverrideReason}>
                       <SelectTrigger style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
-                        <SelectValue placeholder="Why did the AI fail?" />
+                        <SelectValue placeholder="Why was human input needed?" />
                       </SelectTrigger>
                       <SelectContent style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)' }}>
                         <SelectItem value="missing_context" style={{ color: 'var(--argus-text-primary)' }}>Missing system context</SelectItem>
-                        <SelectItem value="incorrect_suggestion" style={{ color: 'var(--argus-text-primary)' }}>AI suggested incorrect fix</SelectItem>
+                        <SelectItem value="incorrect_suggestion" style={{ color: 'var(--argus-text-primary)' }}>AI suggestion not suitable</SelectItem>
                         <SelectItem value="vip_policy" style={{ color: 'var(--argus-text-primary)' }}>VIP Policy Gate correctly triggered</SelectItem>
                         <SelectItem value="novel_issue" style={{ color: 'var(--argus-text-primary)' }}>Completely novel issue class</SelectItem>
                       </SelectContent>
@@ -705,44 +627,30 @@ export const EvidenceCardView = () => {
                     <div className="space-y-2.5">
                       <button
                         type="button"
-                        onClick={handleAcceptAiResolution}
+                        onClick={handleAcceptSuggestion}
                         disabled={resolveMutation.isPending}
                         className="w-full h-11 rounded-xl font-semibold text-sm text-white border-0 transition-all duration-200 flex items-center justify-center gap-2"
                         style={{ background: '#10B981' }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = '#059669')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = '#10B981')}
                       >
-                        {resolveMutation.isPending && resolutionMode === 'accept' ? (
+                        {resolveMutation.isPending ? (
                           <><Loader2 className="h-4 w-4 animate-spin" />Accepting...</>
                         ) : (
                           <><CheckCircle2 size={15} /> Accept AI Resolution</>
                         )}
                       </button>
-                      <button
-                        type="button"
-                        onClick={handleSubmitDifferentResolution}
-                        disabled={resolveMutation.isPending}
-                        className="w-full h-11 rounded-xl font-semibold text-sm border-2 transition-all duration-200 flex items-center justify-center gap-2"
-                        style={{ background: 'transparent', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--argus-surface-2)'; e.currentTarget.style.borderColor = 'var(--argus-indigo)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--argus-border)'; }}
+                      <Button
+                        type="submit"
+                        disabled={resolveMutation.isPending || !resolutionText}
+                        className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
                       >
-                        <Zap size={14} /> Submit Different Resolution
-                      </button>
-                      {resolutionMode === 'override' && resolutionText && (
-                        <Button
-                          type="submit"
-                          disabled={resolveMutation.isPending || !resolutionText}
-                          className="w-full h-11 text-white font-semibold text-sm border-0"
-                          style={{ background: 'var(--argus-indigo)' }}
-                        >
-                          {resolveMutation.isPending ? (
-                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting Override...</>
-                          ) : (
-                            "Submit Override Resolution →"
-                          )}
-                        </Button>
-                      )}
+                        {resolveMutation.isPending ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
+                        ) : (
+                          "Submit Resolution →"
+                        )}
+                      </Button>
                     </div>
                   ) : (
                     <Button
