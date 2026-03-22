@@ -53,7 +53,22 @@ export const EvidenceCardView = () => {
     candidateFixes?.[0]?.resolution ||
     "Agent synthesized a novel response or resolution is unavailable.";
 
-  const resolveMutation = useMutation({
+  const acceptMutation = useMutation({
+    mutationFn: resolveTicket,
+    onSuccess: () => {
+      toast.success('Ticket resolved successfully', {
+        description: `Resolution applied to ${id}.`,
+      });
+      navigate("/agent");
+    },
+    onError: () => {
+      toast.error('Failed to resolve ticket', {
+        description: 'The resolution could not be applied. Please try again.',
+      });
+    },
+  });
+
+  const submitMutation = useMutation({
     mutationFn: resolveTicket,
     onSuccess: () => {
       toast.success('Ticket resolved successfully', {
@@ -116,7 +131,7 @@ export const EvidenceCardView = () => {
   const handleSubmitResolution = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !resolutionText) return;
-    resolveMutation.mutate({
+    submitMutation.mutate({
       ticket_id: id,
       resolution_text: resolutionText,
       resolution_type: resolutionType,
@@ -125,10 +140,11 @@ export const EvidenceCardView = () => {
   };
 
   const handleAcceptSuggestion = (e: React.FormEvent) => {
+    e.stopPropagation();
     e.preventDefault();
     if (!id || !aiSuggestion) return;
     setResolutionText(aiSuggestion);
-    resolveMutation.mutate({
+    acceptMutation.mutate({
       ticket_id: id,
       resolution_text: aiSuggestion,
       resolution_type: "verified",
@@ -615,7 +631,7 @@ export const EvidenceCardView = () => {
                     </Select>
                   </div>
 
-                  {resolveMutation.isError && (
+                  {(acceptMutation.isError || submitMutation.isError) && (
                     <div className="flex items-center gap-2 p-3 rounded-lg border text-sm" style={{ background: 'var(--argus-red-light)', borderColor: 'rgba(220,38,38,0.2)', color: 'var(--argus-red)' }}>
                       <AlertCircle size={14} /> Failed to submit resolution.
                     </div>
@@ -627,13 +643,13 @@ export const EvidenceCardView = () => {
                       <button
                         type="button"
                         onClick={handleAcceptSuggestion}
-                        disabled={resolveMutation.isPending}
+                        disabled={acceptMutation.isPending}
                         className="w-full h-11 rounded-xl font-semibold text-sm text-white border-0 transition-all duration-200 flex items-center justify-center gap-2"
                         style={{ background: '#10B981' }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = '#059669')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = '#10B981')}
                       >
-                        {resolveMutation.isPending ? (
+                        {acceptMutation.isPending ? (
                           <><Loader2 className="h-4 w-4 animate-spin" />Accepting...</>
                         ) : (
                           <><CheckCircle2 size={15} /> Accept AI Resolution</>
@@ -641,10 +657,10 @@ export const EvidenceCardView = () => {
                       </button>
                       <Button
                         type="submit"
-                        disabled={resolveMutation.isPending || !resolutionText}
+                        disabled={submitMutation.isPending || !resolutionText}
                         className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
                       >
-                        {resolveMutation.isPending ? (
+                        {submitMutation.isPending ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
                         ) : (
                           "Submit Resolution →"
@@ -654,10 +670,10 @@ export const EvidenceCardView = () => {
                   ) : (
                     <Button
                       type="submit"
-                      disabled={resolveMutation.isPending || !resolutionText}
+                      disabled={submitMutation.isPending || !resolutionText}
                       className="w-full h-11 text-white font-semibold text-sm border-0 gradient-btn"
                     >
-                      {resolveMutation.isPending ? (
+                      {submitMutation.isPending ? (
                         <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Finalizing...</>
                       ) : (
                         "Submit Resolution →"

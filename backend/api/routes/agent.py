@@ -404,7 +404,6 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
                 {
                     "status": "resolved",
                     "resolved_at": datetime.now(timezone.utc).isoformat(),
-                    "auto_resolved": auto_resolved_retro,
                 }
             ).eq("id", ticket_id).execute()
         except Exception as e:
@@ -496,14 +495,13 @@ async def submit_correction(ticket_id: str, payload: dict):
             }
         ).eq("ticket_id", ticket_id).execute()
 
-        # Sync tickets table: status + auto_resolved
+        # Sync tickets table: status
         from datetime import datetime, timezone
 
         supabase.table("tickets").update(
             {
                 "status": "resolved",
                 "resolved_at": datetime.now(timezone.utc).isoformat(),
-                "auto_resolved": False,
             }
         ).eq("id", ticket_id).execute()
 
