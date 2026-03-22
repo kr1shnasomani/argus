@@ -239,8 +239,24 @@ export const EvidenceCardView = () => {
             </div>
             <div className="p-5 space-y-5">
 
-              {/* Escalation Alert / Auto-Resolution Alert */}
-              {card.status === "auto_resolved" ? (
+              {/* Escalation Alert / Auto-Resolution Alert / Resolution Recorded */}
+              {card.status === "resolved" ? (
+                <div className="flex items-start gap-3 p-4 rounded-xl border" style={{ background: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-emerald)' }} />
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1" style={{ color: 'var(--argus-emerald)' }}>
+                      {card.outcome?.retrospective_match ? 'AI Suggestion Accepted' : 'Manual Resolution Submitted'}
+                    </h4>
+                    <p className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>
+                      {card.outcome?.agent_verified
+                        ? 'Verified as a reusable fix and embedded into the knowledge base.'
+                        : card.outcome?.override_reason
+                        ? `Override recorded: ${card.outcome.override_reason.replace(/_/g, ' ')}.`
+                        : 'Agent completed the ticket and recorded the resolution.'}
+                    </p>
+                  </div>
+                </div>
+              ) : card.status === "auto_resolved" ? (
                 <div className="flex items-start gap-3 p-4 rounded-xl border" style={{ background: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
                   <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-emerald)' }} />
                   <div>
@@ -255,7 +271,7 @@ export const EvidenceCardView = () => {
                   <div>
                     <h4 className="font-semibold text-sm mb-1" style={{ color: 'var(--argus-amber)' }}>Human Escalation Triggered</h4>
                     <p className="text-sm" style={{ color: 'var(--argus-text-secondary)' }}>{escalationReason}</p>
-                    <p className="text-xs mt-1.5" style={{ color: 'var(--argus-text-muted)' }}>Pipeline halted at Layer {interceptedLayer || "N/A"}</p>
+                    <p className="text-xs mt-1.5" style={{ color: 'var(--argus-text-muted)' }}>Pipeline halted at Layer {interceptedLayer ?? "N/A"}</p>
                   </div>
                 </div>
               )}
@@ -342,12 +358,12 @@ export const EvidenceCardView = () => {
 
                   {/* 8. Decision */}
                   <div className="relative">
-                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
-                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }} />
+                    <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 flex items-center justify-center bg-white" style={{ borderColor: card.status === 'resolved' || card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
+                      <div className="h-1.5 w-1.5 rounded-full" style={{ background: card.status === 'resolved' || card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }} />
                     </div>
                     <h5 className="text-sm font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Decision</h5>
-                    <p className="text-xs mt-1" style={{ color: card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
-                      {card.status === 'auto_resolved' ? 'AUTO RESOLVED' : 'HUMAN ESCALATION REQUIRED'}
+                    <p className="text-xs mt-1" style={{ color: card.status === 'resolved' ? 'var(--argus-emerald)' : card.status === 'auto_resolved' ? 'var(--argus-emerald)' : 'var(--argus-amber)' }}>
+                      {card.status === 'resolved' ? 'HUMAN RESOLUTION RECORDED' : card.status === 'auto_resolved' ? 'AUTO RESOLVED' : 'HUMAN ESCALATION REQUIRED'}
                     </p>
                   </div>
 
@@ -358,7 +374,11 @@ export const EvidenceCardView = () => {
               <div className="rounded-xl border p-3.5 mb-4" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
                 <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--argus-text-muted)' }}>Why This Decision</p>
                 <p className="text-xs leading-relaxed" style={{ color: 'var(--argus-text-primary)' }}>
-                  {card.status === 'auto_resolved'
+                  {card.status === 'resolved'
+                    ? card.outcome?.retrospective_match
+                      ? 'The agent accepted the AI suggestion. This resolution has been embedded into the knowledge base and flagged as a retrospective match for future reference.'
+                      : 'The agent submitted a manual resolution and provided feedback. This helps refine the AI model over time.'
+                    : card.status === 'auto_resolved'
                     ? 'All three confidence signals exceeded their thresholds and sandbox tests passed. Argus executed the most-similar past resolution automatically.'
                     : policyGateEscalation
                     ? 'The Policy Gate escalated this ticket before AI processing — likely due to VIP tier, P1/P2 severity, or a policy-matched keyword.'
@@ -514,6 +534,85 @@ export const EvidenceCardView = () => {
                       </form>
                     )}
                   </div>
+                </div>
+              </div>
+            ) : card.status === "resolved" ? (
+              <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
+                <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
+                <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                  <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--argus-emerald)' }}>
+                    <CheckCircle2 size={16} /> Resolution Submitted
+                  </h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>
+                    {card.outcome?.retrospective_match ? 'AI suggestion accepted by agent.' : 'Manual resolution submitted by agent.'}
+                  </p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ${
+                      card.outcome?.retrospective_match
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {card.outcome?.retrospective_match ? 'AI Suggestion Accepted' : 'Manual Resolution'}
+                    </span>
+                    {card.outcome?.agent_verified && (
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: 'rgba(16, 185, 129, 0.08)', color: '#059669', borderColor: 'rgba(16, 185, 129, 0.25)' }}>
+                        Verified Reusable Fix
+                      </span>
+                    )}
+                    {!card.outcome?.agent_verified && card.outcome?.override_reason && (
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full border" style={{ background: 'rgba(245, 158, 11, 0.08)', color: '#D97706', borderColor: 'rgba(245, 158, 11, 0.25)' }}>
+                        Override Recorded
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Resolution Applied</Label>
+                    <div className="p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
+                      {card.outcome?.resolution || appliedResolution}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Feedback Type</Label>
+                    <div className={`p-3 rounded-lg border text-xs font-semibold ${
+                      card.outcome?.agent_verified
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : card.outcome?.override_reason
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-slate-50 text-slate-600 border-slate-200'
+                    }`}>
+                      {card.outcome?.agent_verified
+                        ? 'Verified Reusable Fix — Embedded into vector knowledge base'
+                        : card.outcome?.override_reason
+                        ? `Override: ${card.outcome.override_reason.replace(/_/g, ' ')}`
+                        : 'Temporary Workaround — Not embedded into knowledge base'}
+                    </div>
+                  </div>
+
+                  {card.outcome?.override_reason && (
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Resolution Context</Label>
+                      <div className="p-3 rounded-lg border text-xs" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)', color: 'var(--argus-text-secondary)' }}>
+                        <span className="font-semibold" style={{ color: '#D97706' }}>
+                          {card.outcome.override_reason.replace(/_/g, ' ')}
+                        </span>
+                        {' — '}
+                        {card.outcome.override_reason === 'vip_policy' && 'VIP/Priority ticket. Policy gate correctly escalated to human.'}
+                        {card.outcome.override_reason === 'missing_context' && 'AI lacked sufficient system context to auto-resolve safely.'}
+                        {card.outcome.override_reason === 'incorrect_suggestion' && 'AI suggestion was reviewed and deemed unsuitable for this case.'}
+                        {card.outcome.override_reason === 'novel_issue' && 'This issue class was not represented in the training data.'}
+                      </div>
+                    </div>
+                  )}
+
+                  {card.resolved_at && (
+                    <div className="pt-3 border-t text-xs" style={{ borderColor: 'var(--argus-border)', color: 'var(--argus-text-muted)' }}>
+                      Resolved by agent · {new Date(card.resolved_at).toLocaleString()}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

@@ -208,7 +208,9 @@ async def get_ticket_evidence(ticket_id: str):
             th_b = thresholds.get("threshold_b") if thresholds else None
             th_c = thresholds.get("threshold_c") if thresholds else None
 
-            if (
+            if outcome and outcome.get("sandbox_passed") is False:
+                layer_intercepted = 6
+            elif (
                 "vip" in reason_text
                 or "p1" in reason_text
                 or "p2" in reason_text
@@ -223,8 +225,6 @@ async def get_ticket_evidence(ticket_id: str):
                 layer_intercepted = 4
             elif sig_c is not None and th_c is not None and sig_c < th_c:
                 layer_intercepted = 5
-            elif outcome and outcome.get("sandbox_passed") is False:
-                layer_intercepted = 6
 
         return {
             **t,

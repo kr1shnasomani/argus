@@ -49,6 +49,7 @@ export interface EvidenceCard {
   created_at: string;
   user_tier: string;
   status: string;
+  resolved_at?: string | null;
   user_email?: string;
   
   evidence_card?: {
