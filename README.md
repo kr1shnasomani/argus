@@ -1,7 +1,5 @@
 # <div align="center">Argus</div>
 
-## <div align="center">Intelligent IT Ticket Auto-Handling System</div>
-
 <div align="center">
 
 Automatically resolves IT support tickets using confidence-based AI decision pipeline backed by vector search, LLM reasoning, and live sandbox validation.
@@ -10,20 +8,12 @@ Automatically resolves IT support tickets using confidence-based AI decision pip
 [![React](https://img.shields.io/badge/Frontend-React%2018-61DAFB?style=for-the-badge&logo=react&logoColor=222)](frontend/)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](frontend/)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](backend/)
-
-[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)](DATABASE.md)
-[![Supabase](https://img.shields.io/badge/Supabase-v1-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](DATABASE.md)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-336791?style=for-the-badge&logo=supabase&logoColor=white)](DATABASE.md)
 [![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-EA4AAA?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0VBNEFBQSIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6Ii8+PC9zdmc+)](DATABASE.md)
-
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](#cicd-pipeline)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![License](https://img.shields.io/badge/License-Proprietary-CC0000?style=for-the-badge)](LICENSE)
-
-**Status:** ✅ Production Live | **Last Updated:** March 23, 2026
 
 </div>
-
----
 
 ---
 
