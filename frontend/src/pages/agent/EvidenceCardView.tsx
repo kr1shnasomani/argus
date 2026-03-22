@@ -56,7 +56,18 @@ export const EvidenceCardView = () => {
   const acceptMutation = useMutation({
     mutationFn: resolveTicket,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      if (card) {
+        queryClient.setQueryData(["evidence-card", id], {
+          ...card,
+          status: "resolved",
+          outcome: {
+            ...card.outcome,
+            resolution: card.outcome?.ai_suggestion,
+            agent_verified: true,
+            retrospective_match: true,
+          },
+        });
+      }
       toast.success('Resolution saved', {
         description: `Resolution applied to ${id}.`,
       });
@@ -71,7 +82,18 @@ export const EvidenceCardView = () => {
   const submitMutation = useMutation({
     mutationFn: resolveTicket,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      if (card) {
+        queryClient.setQueryData(["evidence-card", id], {
+          ...card,
+          status: "resolved",
+          outcome: {
+            ...card.outcome,
+            resolution: card.resolution_applied || card.outcome?.ai_suggestion,
+            agent_verified: true,
+            retrospective_match: false,
+          },
+        });
+      }
       toast.success('Resolution saved', {
         description: `Resolution applied to ${id}.`,
       });
@@ -84,11 +106,14 @@ export const EvidenceCardView = () => {
   });
 
   const handleMarkYes = async () => {
-    if (!id) return;
+    if (!id || !card) return;
     setVerificationState('yes');
     try {
       await markAgentVerified(id);
-      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      queryClient.setQueryData(["evidence-card", id], {
+        ...card,
+        outcome: { ...card.outcome, agent_verified: true },
+      });
       toast.success('Marked as verified');
     } catch (e) {
       toast.error('Failed to mark verification');
@@ -103,11 +128,18 @@ export const EvidenceCardView = () => {
 
   const handleSubmitCorrection = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !correctionText) return;
+    if (!id || !correctionText || !card) return;
     setCorrectionSubmitting(true);
     try {
       await submitCorrection(id, correctionText, correctionType);
-      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      queryClient.setQueryData(["evidence-card", id], {
+        ...card,
+        outcome: {
+          ...card.outcome,
+          resolution: correctionText,
+          agent_verified: correctionType === "verified",
+        },
+      });
       setCorrectionSuccess('Correction recorded. The Argus knowledge base has been updated.');
       toast.success('Correction submitted');
       setShowCorrectionForm(false);
