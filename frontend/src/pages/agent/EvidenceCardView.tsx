@@ -134,13 +134,13 @@ export const EvidenceCardView = () => {
       await submitCorrection(id, correctionText, correctionType);
       queryClient.setQueryData(["evidence-card", id], {
         ...card,
+        status: "resolved",
         outcome: {
           ...card.outcome,
           resolution: correctionText,
           agent_verified: correctionType === "verified",
         },
       });
-      setCorrectionSuccess('Correction recorded. The Argus knowledge base has been updated.');
       toast.success('Correction submitted');
       setShowCorrectionForm(false);
     } catch (err) {
@@ -155,7 +155,6 @@ export const EvidenceCardView = () => {
   const [correctionText, setCorrectionText] = useState("");
   const [correctionType, setCorrectionType] = useState<"verified" | "workaround">("verified");
   const [correctionSubmitting, setCorrectionSubmitting] = useState(false);
-  const [correctionSuccess, setCorrectionSuccess] = useState<string | null>(null);
 
   const aiSuggestion = card?.outcome?.ai_suggestion;
 
@@ -497,7 +496,7 @@ export const EvidenceCardView = () => {
         <div className="lg:col-span-5">
           <div className="sticky top-6">
             {card.status === "auto_resolved" ? (
-              verificationState === 'yes' ? (
+              card.outcome?.agent_verified === true && card.outcome?.resolution === card.outcome?.ai_suggestion ? (
                 <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(16, 185, 129, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
                   <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                   <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
@@ -509,11 +508,11 @@ export const EvidenceCardView = () => {
                   <div className="p-5 space-y-4">
                     <div className="p-4 rounded-xl border" style={{ background: 'rgba(16, 185, 129, 0.06)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
                       <p className="text-sm font-medium mb-1.5" style={{ color: 'var(--argus-emerald)' }}>Resolution Verified</p>
-                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{appliedResolution}</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome?.resolution || appliedResolution}</p>
                     </div>
                   </div>
                 </div>
-              ) : correctionSuccess ? (
+              ) : !!card.outcome?.resolution && card.outcome?.resolution !== card.outcome?.ai_suggestion ? (
                 <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(245, 158, 11, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
                   <div className="h-1 w-full" style={{ background: '#F59E0B' }} />
                   <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
@@ -525,10 +524,10 @@ export const EvidenceCardView = () => {
                   <div className="p-5 space-y-4">
                     <div className="p-4 rounded-xl border" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
                       <p className="text-sm font-medium mb-1.5" style={{ color: '#F59E0B' }}>Corrected Resolution</p>
-                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{correctionText}</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome?.resolution}</p>
                     </div>
                     <div className="text-xs font-semibold px-3 py-2 rounded-lg border" style={{ background: 'var(--argus-surface-2)', color: '#059669', borderColor: 'rgba(16, 185, 129, 0.25)' }}>
-                      {correctionType === 'verified' ? 'Verified Reusable Fix — Embedded into knowledge base' : 'Temporary Workaround — Not embedded into knowledge base'}
+                      {card.outcome?.agent_verified ? 'Verified Reusable Fix — Embedded into knowledge base' : 'Temporary Workaround — Not embedded into knowledge base'}
                     </div>
                   </div>
                 </div>
