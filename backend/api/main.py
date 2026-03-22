@@ -1,3 +1,20 @@
+"""
+Argus API Server
+================
+Multi-layer confidence-based IT ticket auto-resolution system.
+- Stage 0: Severity & Category Detection
+- Stage 1: Policy Gate (VIP/P1/P2/incident checks)
+- Stage 2: Vector embedding via Jina AI
+- Stage 3: Qdrant retrieval for similar historical tickets
+- Stage 4: Novelty detection gate
+- Stage 5: Confidence signals A/B/C (semantic, consistency, historical)
+- Stage 6: Sandbox execution validation
+- Stage 7: Finalization with audit trail
+
+All auto-resolutions are backed by confidence >= 0.8 on all three signals
+plus successful sandbox execution. Otherwise escalates to human agents.
+"""
+
 import logging
 import os
 import json
