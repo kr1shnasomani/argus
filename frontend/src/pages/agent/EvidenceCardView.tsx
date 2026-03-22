@@ -88,6 +88,7 @@ export const EvidenceCardView = () => {
     setVerificationState('yes');
     try {
       await markAgentVerified(id);
+      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
       toast.success('Marked as verified');
     } catch (e) {
       toast.error('Failed to mark verification');
@@ -106,10 +107,8 @@ export const EvidenceCardView = () => {
     setCorrectionSubmitting(true);
     try {
       await submitCorrection(id, correctionText, correctionType);
+      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
       setCorrectionSuccess('Correction recorded. The Argus knowledge base has been updated.');
-      // Update applied resolution shown in UI
-      // mutate local card data to reflect corrected resolution
-      (card as any).resolution = correctionText;
       toast.success('Correction submitted');
       setShowCorrectionForm(false);
     } catch (err) {
