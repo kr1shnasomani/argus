@@ -139,6 +139,7 @@ export const EvidenceCardView = () => {
           ...card.outcome,
           resolution: correctionText,
           agent_verified: correctionType === "verified",
+          override_reason: "Incorrect auto-resolution — agent corrected",
         },
       });
       toast.success('Correction submitted');
