@@ -1,5 +1,10 @@
 {
-  "env": {
-    "VITE_API_URL": "https://argus-okop.onrender.com/api"
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://argus-okop.onrender.com/api"
+    }
+  },
+  "cache": {
+    "build": false
   }
 }
