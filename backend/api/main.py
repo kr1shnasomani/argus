@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 # Shared app-level state (passed to routes via module-level dict)
 app_state: dict = {}
 
-CLUSTER_MAP_PATH = os.path.join(os.path.dirname(__file__), "../../data/cluster_map.json")
+CLUSTER_MAP_PATH = os.path.join(
+    os.path.dirname(__file__), "../../data/cluster_map.json"
+)
 
 
 @asynccontextmanager
@@ -43,7 +45,9 @@ async def lifespan(app: FastAPI):
         app_state["qdrant_client"] = qdrant_client
         logger.info("Qdrant client initialized and collection verified.")
     except Exception as e:
-        logger.error(f"Qdrant startup check failed: {e}. Routes that require Qdrant will fail.")
+        logger.error(
+            f"Qdrant startup check failed: {e}. Routes that require Qdrant will fail."
+        )
         app_state["qdrant_client"] = None
 
     yield
@@ -61,11 +65,13 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Allow frontend dev server origin
-    frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    cors_origins = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:3000,https://argus-rose.vercel.app,https://*.vercel.app",
+    )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[frontend_origin, "http://localhost:3000"],
+        allow_origins=[o.strip() for o in cors_origins.split(",")],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -84,7 +90,9 @@ def create_app() -> FastAPI:
         logger.error(f"Unhandled exception on {request.url}: {exc}", exc_info=True)
         return JSONResponse(
             status_code=500,
-            content={"detail": "An internal error occurred. The ticket has been flagged for human review."}
+            content={
+                "detail": "An internal error occurred. The ticket has been flagged for human review."
+            },
         )
 
     @app.get("/health")
