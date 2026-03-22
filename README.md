@@ -4,7 +4,13 @@
 
 # Argus
 
-Intelligent IT Ticket Auto-Handling System
+[![React](https://img.shields.io/badge/Frontend-React%2018-61DAFB?style=for-the-badge&logo=react&logoColor=222)](frontend/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](frontend/)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](backend/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-336791?style=for-the-badge&logo=supabase&logoColor=white)](DATABASE.md)
+[![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-EA4AAA?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0VBNEFBQSIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6Ii8+PC9zdmc+)](DATABASE.md)
+[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](#cicd-pipeline)
+[![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 
 </div>
 
@@ -205,15 +211,3 @@ Argus uses **GitHub Actions** for continuous integration and deployment:
 | **[IMPLEMENTATION_CONTEXT.md](IMPLEMENTATION_CONTEXT.md)** | Technical implementation details |
 | **[SOLUTION.md](SOLUTION.md)** | Authoritative design blueprint (read-only) |
 | **[AGENTS.md](AGENTS.md)** | AI agent development instructions |
-
----
-
-## License
-
-Proprietary — All rights reserved.
-
----
-
-**Last Updated:** March 23, 2026  
-**Current Maintainer:** OpenCode AI  
-**Status:** Production ✅
