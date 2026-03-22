@@ -13,7 +13,7 @@ export const getTicketEvidence = async (ticketId: string): Promise<EvidenceCard>
   return data;
 };
 
-export const resolveTicket = async (resolution: AgentResolution): Promise<{ status: string; message: string }> => {
+export const resolveTicket = async (resolution: AgentResolution): Promise<{ ticket_id: string; status: string; resolution_message: string }> => {
   const { data } = await api.post(`/tickets/${resolution.ticket_id}/resolve`, {
     resolution_text: resolution.resolution_text,
     resolution_type: resolution.resolution_type,

@@ -320,16 +320,27 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
                 retrospective_match = True
                 auto_resolved_retro = True
 
-        # Update ticket outcome
-        supabase.table("ticket_outcomes").update(
-            {
-                "resolution": resolution.resolution_text,
-                "agent_verified": resolution.resolution_type == "verified",
-                "override_reason": resolution.override_reason,
-                "retrospective_match": retrospective_match,
-                "auto_resolved": auto_resolved_retro if retrospective_match else False,
-            }
-        ).eq("ticket_id", ticket_id).execute()
+        # Upsert ticket outcome (insert if missing, update if exists)
+        outcome_payload = {
+            "ticket_id": ticket_id,
+            "resolution": resolution.resolution_text,
+            "agent_verified": resolution.resolution_type == "verified",
+            "override_reason": resolution.override_reason,
+            "retrospective_match": retrospective_match,
+            "auto_resolved": auto_resolved_retro if retrospective_match else False,
+        }
+        existing_outcome = (
+            supabase.table("ticket_outcomes")
+            .select("id")
+            .eq("ticket_id", ticket_id)
+            .execute()
+        )
+        if existing_outcome.data:
+            supabase.table("ticket_outcomes").update(outcome_payload).eq(
+                "ticket_id", ticket_id
+            ).execute()
+        else:
+            supabase.table("ticket_outcomes").insert(outcome_payload).execute()
 
         # If verified, embed and upsert into Qdrant with the correct cluster
         if resolution.resolution_type == "verified":
@@ -374,24 +385,33 @@ async def resolve_ticket(ticket_id: str, resolution: AgentResolution):
             except Exception as e:
                 logger.warning(f"Qdrant upsert failed for verified resolution: {e}")
 
-        # Log to audit
-        evidence = {
-            "resolution": resolution.resolution_text,
-            "type": resolution.resolution_type,
-            "override_reason": resolution.override_reason,
-        }
-        log_to_audit(ticket_id, "AGENT_RESOLVED", evidence, supabase)
+        # Log to audit (non-blocking — audit failures should not break resolution)
+        try:
+            evidence = {
+                "resolution": resolution.resolution_text,
+                "type": resolution.resolution_type,
+                "override_reason": resolution.override_reason,
+            }
+            log_to_audit(ticket_id, "AGENT_RESOLVED", evidence, supabase)
+        except Exception as e:
+            logger.warning(f"Audit log failed for ticket {ticket_id}: {e}")
 
         # Update ticket status
-        from datetime import datetime, timezone
+        try:
+            from datetime import datetime, timezone
 
-        supabase.table("tickets").update(
-            {
-                "status": "resolved",
-                "resolved_at": datetime.now(timezone.utc).isoformat(),
-                "auto_resolved": auto_resolved_retro,
-            }
-        ).eq("id", ticket_id).execute()
+            supabase.table("tickets").update(
+                {
+                    "status": "resolved",
+                    "resolved_at": datetime.now(timezone.utc).isoformat(),
+                    "auto_resolved": auto_resolved_retro,
+                }
+            ).eq("id", ticket_id).execute()
+        except Exception as e:
+            logger.error(f"Failed to update ticket {ticket_id} status: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to update ticket status: {e}"
+            )
 
         return {
             "ticket_id": ticket_id,
