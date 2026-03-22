@@ -65,13 +65,9 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    cors_origins = os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:5173,http://localhost:3000,https://argus-rose.vercel.app,https://*.vercel.app",
-    )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[o.strip() for o in cors_origins.split(",")],
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
