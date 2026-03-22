@@ -702,3 +702,49 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--argus-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--argus-text-muted); }
+
+/* ============================================================
+   SYSTEM CONFIG: THICK, HIGH-CONTRAST SLIDERS
+   ============================================================ */
+/* Track: override Radix h-1.5 (6px) → 8px, keep bg-muted (gray unfilled portion) */
+.slider-argus [data-slot="slider-track"] {
+  height: 8px !important;
+  border-radius: 999px !important;
+}
+/* Range: 8px tall, per-signal color, sits on top of track's bg-muted (gray unfilled) */
+.slider-argus [data-slot="slider-range"] {
+  height: 8px !important;
+  border-radius: 999px !important;
+  top: 0 !important;
+}
+/* Per-signal range colors */
+.slider-argus--sig-a [data-slot="slider-range"] { background: #7C3AED !important; }
+.slider-argus--sig-b [data-slot="slider-range"] { background: #4F46E5 !important; }
+.slider-argus--sig-c [data-slot="slider-range"] { background: #0891B2 !important; }
+.slider-argus--sig-n [data-slot="slider-range"] { background: #059669 !important; }
+.slider-argus--sig-m [data-slot="slider-range"] { background: #D97706 !important; }
+
+/* Thumb: 22px, white fill, colored border */
+.slider-argus [data-slot="slider-thumb"] {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 999px !important;
+  background: white !important;
+  border: 2.5px solid var(--argus-indigo) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15) !important;
+  transition: box-shadow 0.15s ease !important;
+  outline: none;
+}
+/* Per-signal thumb border colors */
+.slider-argus--sig-a [data-slot="slider-thumb"] { border-color: #7C3AED !important; }
+.slider-argus--sig-b [data-slot="slider-thumb"] { border-color: #4F46E5 !important; }
+.slider-argus--sig-c [data-slot="slider-thumb"] { border-color: #0891B2 !important; }
+.slider-argus--sig-n [data-slot="slider-thumb"] { border-color: #059669 !important; }
+.slider-argus--sig-m [data-slot="slider-thumb"] { border-color: #D97706 !important; }
+
+.slider-argus [data-slot="slider-thumb"]:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px rgba(79,70,229,0.2) !important;
+}
+.slider-argus [data-slot="slider-thumb"]:focus-visible {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px rgba(79,70,229,0.25) !important;
+}

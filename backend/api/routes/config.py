@@ -322,6 +322,168 @@ async def get_system_health(services: Optional[str] = None):
     return {"all_operational": all_operational, "systems": systems}
 
 
+class ThresholdUpdate(BaseModel):
+    threshold_a: Optional[float] = None
+    threshold_b: Optional[float] = None
+    threshold_c: Optional[float] = None
+    novelty_threshold: Optional[float] = None
+    min_sample_size: Optional[int] = None
+
+
+@router.get("/api/config/thresholds")
+async def get_thresholds():
+    """Returns all category thresholds."""
+    supabase = get_supabase()
+    res = supabase._client.table("category_thresholds").select("*").execute()
+    return {"thresholds": res.data if res.data else []}
+
+
+@router.get("/api/config/thresholds/{category}")
+async def get_threshold(category: str):
+    """Returns thresholds for a specific category."""
+    supabase = get_supabase()
+    res = (
+        supabase._client.table("category_thresholds")
+        .select("*")
+        .eq("category", category)
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(
+            status_code=404, detail=f"No thresholds found for category: {category}"
+        )
+    return res.data[0]
+
+
+@router.get("/api/config/thresholds/impact")
+async def get_impact_preview():
+    """
+    Returns a preview of how many tickets would auto-resolve vs escalate
+    under the current thresholds, for dashboard display.
+    """
+    supabase = get_supabase()
+    res = (
+        supabase._client.table("ticket_outcomes")
+        .select("category, auto_resolved, signal_a")
+        .not_("signal_a", "is", None)
+        .execute()
+    )
+
+    rows = res.data if res.data else []
+    total = len(rows)
+    if total == 0:
+        return {
+            "total_tickets": 0,
+            "auto_resolved_count": 0,
+            "escalated_count": 0,
+            "auto_resolve_rate": 0,
+            "previous_rate": 0,
+            "delta": 0,
+            "categories": {},
+        }
+
+    auto_resolved_count = sum(1 for r in rows if r.get("auto_resolved") is True)
+    escalated_count = total - auto_resolved_count
+    auto_resolve_rate = auto_resolved_count / total
+
+    by_category: dict = {}
+    for row in rows:
+        cat = row.get("category") or "Unknown"
+        if cat not in by_category:
+            by_category[cat] = {"tickets": 0, "auto_resolved": 0, "escalated": 0}
+        by_category[cat]["tickets"] += 1
+        if row.get("auto_resolved") is True:
+            by_category[cat]["auto_resolved"] += 1
+
+    categories: dict = {}
+    for cat, vals in by_category.items():
+        rate = vals["auto_resolved"] / vals["tickets"] if vals["tickets"] > 0 else 0
+        categories[cat] = {
+            "tickets": vals["tickets"],
+            "auto_resolved": vals["auto_resolved"],
+            "escalated": vals["escalated"],
+            "new_rate": rate,
+            "previous_rate": rate,
+        }
+
+    return {
+        "total_tickets": total,
+        "auto_resolved_count": auto_resolved_count,
+        "escalated_count": escalated_count,
+        "auto_resolve_rate": auto_resolve_rate,
+        "previous_rate": auto_resolve_rate,
+        "delta": 0.0,
+        "categories": categories,
+    }
+
+
+@router.patch("/api/config/thresholds/{category}")
+async def update_threshold(category: str, update: ThresholdUpdate):
+    """
+    Updates thresholds for a specific category.
+    All fields are optional — only provided fields are updated.
+    """
+    supabase = get_supabase()
+    res = (
+        supabase._client.table("category_thresholds")
+        .select("id")
+        .eq("category", category)
+        .execute()
+    )
+    if not res.data:
+        raise HTTPException(
+            status_code=404, detail=f"No thresholds found for category: {category}"
+        )
+
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields provided for update.")
+
+    if "threshold_a" in update_data:
+        val = float(update_data["threshold_a"])
+        if not (0.0 <= val <= 1.0):
+            raise HTTPException(
+                status_code=400, detail="threshold_a must be between 0.0 and 1.0"
+            )
+    if "threshold_b" in update_data:
+        val = float(update_data["threshold_b"])
+        if not (0.0 <= val <= 1.0):
+            raise HTTPException(
+                status_code=400, detail="threshold_b must be between 0.0 and 1.0"
+            )
+    if "threshold_c" in update_data:
+        val = float(update_data["threshold_c"])
+        if not (0.0 <= val <= 1.0):
+            raise HTTPException(
+                status_code=400, detail="threshold_c must be between 0.0 and 1.0"
+            )
+    if "novelty_threshold" in update_data:
+        val = float(update_data["novelty_threshold"])
+        if not (0.0 <= val <= 1.0):
+            raise HTTPException(
+                status_code=400, detail="novelty_threshold must be between 0.0 and 1.0"
+            )
+    if "min_sample_size" in update_data:
+        val = int(update_data["min_sample_size"])
+        if val < 1:
+            raise HTTPException(
+                status_code=400, detail="min_sample_size must be at least 1"
+            )
+
+    from datetime import datetime, timezone
+
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    row_id = res.data[0]["id"]
+    upd = (
+        supabase._client.table("category_thresholds")
+        .update(update_data)
+        .eq("id", row_id)
+        .execute()
+    )
+    return upd.data[0] if upd.data else {}
+
+
 class SimulateRequest(BaseModel):
     description: str
     user_tier: Literal["standard", "vip", "contractor"] = "standard"

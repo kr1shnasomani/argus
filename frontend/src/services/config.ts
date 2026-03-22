@@ -1,9 +1,26 @@
 import { api } from "@/lib/api";
-import { SimulationResponse } from "@/types";
+import { SimulationResponse, ThresholdConfig, ThresholdUpdatePayload, ImpactPreview } from "@/types";
 
-export const getThresholds = async (category?: string) => {
-  const url = category ? `/config/thresholds/${category}` : "/config/thresholds";
-  const { data } = await api.get(url);
+export const getThresholds = async (): Promise<ThresholdConfig[]> => {
+  const { data } = await api.get<{ thresholds: ThresholdConfig[] }>("/config/thresholds");
+  return data.thresholds;
+};
+
+export const getThreshold = async (category: string): Promise<ThresholdConfig> => {
+  const { data } = await api.get<ThresholdConfig>(`/config/thresholds/${category}`);
+  return data;
+};
+
+export const updateThreshold = async (
+  category: string,
+  payload: ThresholdUpdatePayload
+): Promise<ThresholdConfig> => {
+  const { data } = await api.patch<ThresholdConfig>(`/config/thresholds/${category}`, payload);
+  return data;
+};
+
+export const getImpactPreview = async (): Promise<ImpactPreview> => {
+  const { data } = await api.get<ImpactPreview>("/config/thresholds/impact");
   return data;
 };
 

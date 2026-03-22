@@ -18,6 +18,7 @@ const WhatIfSimulator = lazy(() => import('@/pages/agent/WhatIfSimulator'));
 const MetricsDashboard = lazy(() => import('@/pages/agent/MetricsDashboard').then((m) => ({ default: m.MetricsDashboard })));
 const TicketHistory = lazy(() => import('@/pages/agent/TicketHistory').then((m) => ({ default: m.TicketHistory })));
 const SystemHealth = lazy(() => import('@/pages/agent/SystemHealth').then((m) => ({ default: m.default })));
+const SystemConfig = lazy(() => import('@/pages/agent/SystemConfig'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,7 @@ function App() {
                 <Route path="metrics" element={<MetricsDashboard />} />
                 <Route path="health" element={<SystemHealth />} />
                 <Route path="simulator" element={<WhatIfSimulator />} />
+                <Route path="config" element={<SystemConfig />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,39 +1,67 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layers, LayoutDashboard, Terminal, ChevronRight, Home, Sparkles, Archive, Activity } from 'lucide-react';
+import { Layers, LayoutDashboard, Terminal, ChevronRight, Home, Sparkles, Archive, Activity, Settings2, ShieldCheck, LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import argusLogo from '@/assets/argus-logo.png';
 
+interface NavItem {
+  name: string;
+  path: string;
+  icon: LucideIcon;
+  desc: string;
+  section: 'agent' | 'system' | 'switch';
+}
+
+const navItems: NavItem[] = [
+  // Agent Tools
+  { name: 'Escalated Queue', path: '/agent', icon: Layers, desc: 'Pending review', section: 'agent' },
+  { name: 'All Tickets', path: '/agent/history', icon: Archive, desc: 'Ticket history', section: 'agent' },
+  { name: 'Metrics', path: '/agent/metrics', icon: LayoutDashboard, desc: 'System telemetry', section: 'agent' },
+  { name: 'Simulator', path: '/agent/simulator', icon: Terminal, desc: 'What-if engine', section: 'agent' },
+  // System Settings
+  { name: 'System Health', path: '/agent/health', icon: Activity, desc: 'Service monitoring', section: 'system' },
+  { name: 'System Config', path: '/agent/config', icon: Settings2, desc: 'Thresholds & policies', section: 'system' },
+  // Switch
+  { name: 'Employee View', path: '/employee', icon: Sparkles, desc: '', section: 'switch' },
+  { name: 'Back to Home', path: '/', icon: Home, desc: '', section: 'switch' },
+];
+
+const SECTION_LABELS: Record<NavItem['section'], string> = {
+  agent: 'Agent Tools',
+  system: 'System Settings',
+  switch: 'Switch Portal',
+};
+
 export const AgentLayout = () => {
   const location = useLocation();
-
-  const navItems = [
-    { name: 'Escalated Queue', path: '/agent', icon: Layers, desc: 'Pending review', count: null },
-    { name: 'All Tickets', path: '/agent/history', icon: Archive, desc: 'Ticket history', count: null },
-    { name: 'Metrics', path: '/agent/metrics', icon: LayoutDashboard, desc: 'System telemetry', count: null },
-    { name: 'System Health', path: '/agent/health', icon: Activity, desc: 'Service monitoring', count: null },
-    { name: 'Simulator', path: '/agent/simulator', icon: Terminal, desc: 'What-if engine', count: null },
-  ];
-
   const activePathFallback = location.state?.from || '/agent';
 
-  const pageTitle = navItems.find(item => 
-    location.pathname === item.path || 
+  const pageTitle = navItems.find(item =>
+    location.pathname === item.path ||
     (location.pathname.startsWith('/agent/ticket') && item.path === activePathFallback)
   )?.name || 'Agent Portal';
 
+  // Group nav items by section
+  const grouped = navItems.reduce<Record<NavItem['section'], NavItem[]>>((acc, item) => {
+    if (!acc[item.section]) acc[item.section] = [];
+    acc[item.section].push(item);
+    return acc;
+  }, {} as Record<NavItem['section'], NavItem[]>);
+
+  const sections: NavItem['section'][] = ['agent', 'system', 'switch'];
+
   return (
     <div className="flex h-screen w-screen overflow-hidden" style={{ background: 'var(--argus-bg)' }}>
-      
+
       {/* ── Sidebar ── */}
-      <aside 
+      <aside
         className="w-[250px] flex flex-col flex-shrink-0 border-r"
-        style={{ 
-          background: 'var(--sidebar-bg)', 
-          borderColor: 'var(--sidebar-border)' 
+        style={{
+          background: 'var(--sidebar-bg)',
+          borderColor: 'var(--sidebar-border)'
         }}
       >
         {/* Logo header */}
-        <div 
+        <div
           className="h-[60px] flex items-center px-5 border-b flex-shrink-0"
           style={{ borderColor: 'var(--sidebar-border)' }}
         >
@@ -46,7 +74,7 @@ export const AgentLayout = () => {
             />
             <div>
               <div className="flex items-center gap-1.5">
-                <span 
+                <span
                   className="font-bold text-[15px] tracking-tight"
                   style={{ color: 'var(--argus-text-primary)' }}
                 >
@@ -58,98 +86,78 @@ export const AgentLayout = () => {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto">
-          <div 
-            className="text-[10px] font-semibold uppercase tracking-widest px-3 pb-2 pt-1"
-            style={{ color: 'var(--argus-text-muted)' }}
-          >
-            Agent Tools
-          </div>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (location.pathname.startsWith('/agent/ticket') && item.path === activePathFallback);
-
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                className="sidebar-link group"
-                style={{ 
-                  background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
-                  color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)'
-                }}
+        <nav className="flex-1 py-3 px-3 overflow-y-auto">
+          {sections.map((section) => (
+            <div key={section} className="mb-5">
+              <div
+                className="text-[10px] font-semibold uppercase tracking-widest px-3 pb-2 pt-1"
+                style={{ color: 'var(--argus-text-muted)' }}
               >
-                <div 
-                  className="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0"
-                  style={{ 
-                    background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
-                    color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)'
-                  }}
-                >
-                  <Icon size={15} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[13px]">{item.name}</span>
-                  <div className="text-[10px] leading-tight mt-0.5" style={{ color: 'var(--argus-text-muted)', opacity: isActive ? 1 : 0.7 }}>
-                    {item.desc}
-                  </div>
-                </div>
-                {isActive && (
-                  <ChevronRight size={12} className="flex-shrink-0" style={{ color: 'var(--argus-indigo)', opacity: 0.6 }} />
-                )}
-              </Link>
-            );
-          })}
+                {SECTION_LABELS[section]}
+              </div>
+              {grouped[section]?.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path ||
+                  (location.pathname.startsWith('/agent/ticket') && item.path === activePathFallback);
 
-          {/* Switch section */}
-          <div className="pt-4">
-            <div 
-              className="text-[10px] font-semibold uppercase tracking-widest px-3 pb-2"
-              style={{ color: 'var(--argus-text-muted)' }}
-            >
-              Switch Portal
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="sidebar-link group mb-0.5"
+                    style={{
+                      background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
+                      color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)',
+                    }}
+                  >
+                    <div
+                      className="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0"
+                      style={{
+                        background: isActive ? 'var(--argus-indigo-light)' : 'transparent',
+                        color: isActive ? 'var(--argus-indigo)' : 'var(--sidebar-text)',
+                      }}
+                    >
+                      <Icon size={15} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[13px]">{item.name}</span>
+                      {item.desc && (
+                        <div
+                          className="text-[10px] leading-tight mt-0.5"
+                          style={{ color: 'var(--argus-text-muted)', opacity: isActive ? 1 : 0.7 }}
+                        >
+                          {item.desc}
+                        </div>
+                      )}
+                    </div>
+                    {isActive && (
+                      <ChevronRight size={12} className="flex-shrink-0" style={{ color: 'var(--argus-indigo)', opacity: 0.6 }} />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
-            <Link
-              to="/employee"
-              className="sidebar-link opacity-70 hover:opacity-100 group"
-            >
-              <div className="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style={{ color: 'var(--sidebar-text)' }}>
-                <Sparkles size={15} />
-              </div>
-              <span className="text-[13px]">Employee View</span>
-            </Link>
-            <Link
-              to="/"
-              className="sidebar-link opacity-70 hover:opacity-100 group"
-            >
-              <div className="flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0" style={{ color: 'var(--sidebar-text)' }}>
-                <Home size={15} />
-              </div>
-              <span className="text-[13px]">Back to Home</span>
-            </Link>
-          </div>
+          ))}
         </nav>
 
         {/* Bottom section */}
-        <div 
-          className="p-3 border-t space-y-2"
+        <div
+          className="p-3 border-t"
           style={{ borderColor: 'var(--sidebar-border)' }}
         >
           {/* Agent chip */}
-          <div 
+          <div
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg"
             style={{ background: 'var(--argus-surface-2)' }}
           >
-            <div 
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+              style={{ background: 'var(--argus-indigo)' }}
             >
-              AG
+              <ShieldCheck size={14} color="white" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold" style={{ color: 'var(--argus-text-primary)' }}>Agent Console</div>
-              <div className="text-[10px]" style={{ color: 'var(--argus-text-muted)' }}>Superuser access</div>
             </div>
           </div>
         </div>
@@ -157,13 +165,11 @@ export const AgentLayout = () => {
 
       {/* ── Main Content ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        
+
         {/* Top Header Bar */}
-        <header 
-          className="h-[52px] flex items-center px-6 border-b flex-shrink-0 gap-4 glass-panel"
-          style={{ 
-            borderColor: 'var(--argus-border)',
-          }}
+        <header
+          className="h-[52px] flex items-center px-6 border-b flex-shrink-0 gap-4"
+          style={{ borderColor: 'var(--argus-border)' }}
         >
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm">
@@ -178,7 +184,7 @@ export const AgentLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main 
+        <main
           className="flex-1 overflow-y-auto"
           style={{ background: 'var(--argus-bg)' }}
         >

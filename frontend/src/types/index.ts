@@ -191,6 +191,41 @@ export interface DriftData {
   categories: CategoryDrift[];
 }
 
+export interface ThresholdConfig {
+  id: string;
+  category: string;
+  threshold_a: number;
+  threshold_b: number;
+  threshold_c: number;
+  novelty_threshold: number;
+  min_sample_size: number;
+  updated_at: string;
+}
+
+export interface ThresholdUpdatePayload {
+  threshold_a?: number;
+  threshold_b?: number;
+  threshold_c?: number;
+  novelty_threshold?: number;
+  min_sample_size?: number;
+}
+
+export interface ImpactPreview {
+  total_tickets: number;
+  auto_resolved_count: number;
+  escalated_count: number;
+  auto_resolve_rate: number;
+  previous_rate: number;
+  delta: number;
+  categories: Record<string, {
+    tickets: number;
+    auto_resolved: number;
+    escalated: number;
+    new_rate: number;
+    previous_rate: number;
+  }>;
+}
+
 export interface TicketHistoryRow {
   id: string;
   user_id: string;
