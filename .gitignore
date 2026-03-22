@@ -30,7 +30,7 @@ data/cluster_map.json
 ~/.cache/huggingface/
 
 # IDE
-.vscode/settings.json
+.vscode/
 .idea/
 *.swp
 *.swo
