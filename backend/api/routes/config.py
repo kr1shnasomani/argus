@@ -254,6 +254,36 @@ async def _check_pipeline() -> dict:
     return {"status": "operational", "latency_ms": 0}
 
 
+@router.get("/api/config/users")
+async def get_users():
+    """
+    Returns all users from the database for the employee ticket submission flow.
+    """
+    from services.supabase import get_supabase
+
+    supabase = get_supabase()
+    result = (
+        supabase.table("users").select("id, email, name, tier, department").execute()
+    )
+    return result.data
+
+
+@router.get("/api/config/systems")
+async def get_systems():
+    """
+    Returns all systems from the database for the employee ticket submission flow.
+    """
+    from services.supabase import get_supabase
+
+    supabase = get_supabase()
+    result = (
+        supabase.table("systems")
+        .select("id, name, category, change_freeze, active_incident")
+        .execute()
+    )
+    return result.data
+
+
 @router.get("/api/config/health")
 async def get_system_health(services: Optional[str] = None):
     """

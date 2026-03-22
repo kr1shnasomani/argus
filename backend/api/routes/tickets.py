@@ -150,7 +150,9 @@ async def get_ticket_status(ticket_id: str):
         latency = audit["latency_ms"] if audit else None
 
         return {
+            "id": ticket_id,
             "ticket_id": ticket_id,
+            "description": ticket.get("description", ""),
             "status": ticket["status"],
             "category": ticket["category"],
             "severity": ticket["severity"],
@@ -159,6 +161,7 @@ async def get_ticket_status(ticket_id: str):
             "resolution": outcome["resolution"] if outcome else None,
             "decision_latency_ms": latency,
             "evidence_card": audit["evidence_card"] if audit else None,
+            "latency_ms": latency,
         }
     except HTTPException:
         raise

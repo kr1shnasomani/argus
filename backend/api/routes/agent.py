@@ -491,7 +491,7 @@ async def submit_correction(ticket_id: str, payload: dict):
                 "retrospective_match": False,
                 "agent_verified": True,
                 "auto_resolved": False,
-                "override_reason": "Incorrect auto-resolution — agent corrected",
+                "override_reason": "Agent corrected the auto-resolution",
             }
         ).eq("ticket_id", ticket_id).execute()
 
