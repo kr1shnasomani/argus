@@ -496,7 +496,7 @@ export const EvidenceCardView = () => {
         <div className="lg:col-span-5">
           <div className="sticky top-6">
             {card.status === "auto_resolved" ? (
-              card.outcome?.agent_verified === true && card.outcome?.resolution === card.outcome?.ai_suggestion ? (
+              card.outcome?.agent_verified === true ? (
                 <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(16, 185, 129, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
                   <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                   <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
@@ -512,7 +512,7 @@ export const EvidenceCardView = () => {
                     </div>
                   </div>
                 </div>
-              ) : !!card.outcome?.resolution && card.outcome?.resolution !== card.outcome?.ai_suggestion ? (
+              ) : card.outcome?.override_reason ? (
                 <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(245, 158, 11, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
                   <div className="h-1 w-full" style={{ background: '#F59E0B' }} />
                   <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
@@ -522,6 +522,11 @@ export const EvidenceCardView = () => {
                     <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>The corrected resolution has been recorded and the knowledge base updated.</p>
                   </div>
                   <div className="p-5 space-y-4">
+                    {card.outcome?.override_reason && (
+                      <div className="text-xs font-semibold px-3 py-2 rounded-lg border" style={{ background: 'rgba(245, 158, 11, 0.08)', color: '#D97706', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+                        {card.outcome.override_reason}
+                      </div>
+                    )}
                     <div className="p-4 rounded-xl border" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
                       <p className="text-sm font-medium mb-1.5" style={{ color: '#F59E0B' }}>Corrected Resolution</p>
                       <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{card.outcome?.resolution}</p>
