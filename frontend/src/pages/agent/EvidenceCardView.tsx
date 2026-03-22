@@ -118,7 +118,7 @@ export const EvidenceCardView = () => {
     if (!id || !resolutionText) return;
     resolveMutation.mutate({
       ticket_id: id,
-      resolution: resolutionText,
+      resolution_text: resolutionText,
       resolution_type: resolutionType,
       override_reason: overrideReason || null,
     });
@@ -130,7 +130,7 @@ export const EvidenceCardView = () => {
     setResolutionText(aiSuggestion);
     resolveMutation.mutate({
       ticket_id: id,
-      resolution: aiSuggestion,
+      resolution_text: aiSuggestion,
       resolution_type: "verified",
       override_reason: null,
       accept_suggestion: true,

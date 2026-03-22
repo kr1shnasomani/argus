@@ -6,7 +6,7 @@ export interface ConfidenceSignal {
 
 export interface AgentResolution {
   ticket_id: string;
-  resolution: string;
+  resolution_text: string;
   resolution_type: "verified" | "workaround" | "uncertain";
   override_reason?: string | null;
   accept_suggestion?: boolean;

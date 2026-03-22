@@ -14,7 +14,12 @@ export const getTicketEvidence = async (ticketId: string): Promise<EvidenceCard>
 };
 
 export const resolveTicket = async (resolution: AgentResolution): Promise<{ status: string; message: string }> => {
-  const { data } = await api.post(`/tickets/${resolution.ticket_id}/resolve`, resolution);
+  const { data } = await api.post(`/agent/${resolution.ticket_id}/resolve`, {
+    resolution_text: resolution.resolution_text,
+    resolution_type: resolution.resolution_type,
+    override_reason: resolution.override_reason ?? null,
+    accept_suggestion: resolution.accept_suggestion ?? false,
+  });
   return data;
 };
 
