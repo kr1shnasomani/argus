@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from enum import Enum
 
-from core.policy_gate import hard_policy_gate
+from core.policy_gate import hard_policy_gate, auto_detect_severity
 from core.embedder import embed_ticket
 from core.retriever import retrieve_similar
 from core.novelty import check_novelty
@@ -394,6 +394,19 @@ async def process_ticket(
             )
         except Exception:
             pass
+
+    # --- Severity Auto-Detection ---
+    if not ticket.get("severity") or ticket.get("severity") == "P3":
+        detected_severity = auto_detect_severity(ticket.get("description", ""))
+        if detected_severity != "P3":
+            ticket["severity"] = detected_severity
+            logs.append(f"Auto-detected severity: {detected_severity}")
+            try:
+                supabase_client.update_ticket(
+                    ticket["id"], {"severity": detected_severity}
+                )
+            except Exception:
+                pass
 
     # --- Layer 0: Hard Policy Gate ---
     logs.append("Running Layer 0: Hard Policy Gate")

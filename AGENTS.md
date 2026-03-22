@@ -65,7 +65,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 - **Do not invent new architecture.** Follow the existing module boundaries and directory structure.
 - **Respect the tech stack.** Python 3.11+, FastAPI, async. React 18+, TypeScript, Vite, shadcn/ui, Tailwind CSS.
 - **Do not refactor broadly.** Avoid restructuring directories or changing data flow unless the task specifically requires it.
-- **Preserve pipeline layer order.** The 6-layer pipeline (Policy Gate → Vector DB Novelty → Signal A → Signal B → Signal C → Sandbox) must always execute in sequence.
+- **Preserve pipeline layer order.** The 9-stage pipeline (Severity Auto-Detection → Category Auto-Detection → Policy Gate → Embedding → Retrieval → Novelty → Confidence (A/B/C) → Sandbox → Finalization) must always execute in sequence.
 - **Respect escalation safety.** If any component fails or is unavailable (Qdrant down, sandbox unreachable, LLM timeout), the system **must default to escalation**. Never auto-resolve when uncertain.
 - **Audit trail.** Every decision must produce a SHA-256 hash chained to the previous entry in `audit_log`.
 

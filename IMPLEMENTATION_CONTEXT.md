@@ -9,7 +9,7 @@ This file summarizes the concrete implementation choices in the current Argus co
 | Module | File | Role |
 |---|---|---|
 | Orchestrator | `backend/core/pipeline.py` | Runs all 8 pipeline stages in sequence, calls `conclude()` on finish |
-| Policy Gate | `backend/core/policy_gate.py` | VIP/P1/P2/freeze/incident matching — returns `PROCEED` or `ESCALATE` |
+| Policy Gate | `backend/core/policy_gate.py` | Severity auto-detection, VIP/P1/P2/freeze/incident matching — returns `PROCEED` or `ESCALATE` |
 | Embedder | `backend/core/embedder.py` | Jina AI text embedding (`jina-embeddings-v3`) |
 | Retriever | `backend/core/retriever.py` | Qdrant nearest-neighbor search |
 | Novelty | `backend/core/novelty.py` | Vector DB novelty check |
