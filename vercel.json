@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rootDirectory": "frontend",
+  "env": {
+    "VITE_API_URL": "https://argus-okop.onrender.com/api"
+  }
+}
