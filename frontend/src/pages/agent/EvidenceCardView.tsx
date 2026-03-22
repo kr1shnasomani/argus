@@ -23,6 +23,8 @@ export const EvidenceCardView = () => {
     enabled: !!id,
   });
 
+  const agentReviewed = card?.outcome?.agent_verified === true || (!!card?.outcome?.resolution && card.outcome.resolution !== card.outcome.ai_suggestion);
+
   const candidateFixes = card?.candidate_fixes || card?.evidence_card?.candidate_fixes || [];
   const escalationReason =
     card?.escalation_reason ||
@@ -496,7 +498,7 @@ export const EvidenceCardView = () => {
         {/* RIGHT: Resolution Workspace or Auto-Resolution Audit */}
         <div className="lg:col-span-5">
           <div className="sticky top-6">
-            {card.status === "auto_resolved" ? (
+            {card.status === "auto_resolved" && !agentReviewed ? (
               <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
                 <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                 <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
@@ -567,7 +569,7 @@ export const EvidenceCardView = () => {
                   </div>
                 </div>
               </div>
-            ) : card.status === "resolved" ? (
+            ) : (card.status === "resolved" || (card.status === "auto_resolved" && agentReviewed)) ? (
               <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
                 <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                 <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
