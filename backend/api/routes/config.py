@@ -29,7 +29,7 @@ SYSTEM_DEFINITIONS = [
         "name": "Sandbox",
         "type": "Sandbox",
         "method": "GET",
-        "endpoint": "localhost:8001/health",
+        "endpoint": "argus-1-y489.onrender.com/health",
     },
     {
         "id": "jina",
