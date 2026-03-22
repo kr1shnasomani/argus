@@ -388,7 +388,6 @@ export const EvidenceCardView = () => {
                             </span>
                           </div>
                           <p className="text-xs line-clamp-2" style={{ color: 'var(--argus-text-secondary)' }}>{fix.resolution}</p>
-                          <p className="text-[10px] mt-1 text-right" style={{ color: 'var(--argus-text-muted)' }}>↑ Click to apply</p>
                         </motion.div>
                       ))}
                     </div>
