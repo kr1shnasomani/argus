@@ -23,8 +23,6 @@ export const EvidenceCardView = () => {
     enabled: !!id,
   });
 
-  const agentReviewed = card?.outcome?.agent_verified === true || (!!card?.outcome?.resolution && card.outcome.resolution !== card.outcome.ai_suggestion);
-
   const candidateFixes = card?.candidate_fixes || card?.evidence_card?.candidate_fixes || [];
   const escalationReason =
     card?.escalation_reason ||
@@ -498,78 +496,124 @@ export const EvidenceCardView = () => {
         {/* RIGHT: Resolution Workspace or Auto-Resolution Audit */}
         <div className="lg:col-span-5">
           <div className="sticky top-6">
-            {card.status === "auto_resolved" && !agentReviewed ? (
-              <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
-                <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
-                <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
-                  <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--argus-emerald)' }}>
-                    <CheckCircle2 size={16} /> Auto-Resolution Audit
-                  </h3>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>This ticket was handled autonomously by Argus.</p>
+            {card.status === "auto_resolved" ? (
+              verificationState === 'yes' ? (
+                <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(16, 185, 129, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
+                  <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
+                  <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                    <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--argus-emerald)' }}>
+                      <CheckCircle2 size={16} /> Agent Acknowledgment Received
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>The resolution has been verified and accepted.</p>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <div className="p-4 rounded-xl border" style={{ background: 'rgba(16, 185, 129, 0.06)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                      <p className="text-sm font-medium mb-1.5" style={{ color: 'var(--argus-emerald)' }}>Resolution Verified</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{appliedResolution}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Applied Resolution</Label>
-                    <div className="p-4 rounded-xl border text-sm whitespace-pre-wrap" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
-                      {appliedResolution}
+              ) : correctionSuccess ? (
+                <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'rgba(245, 158, 11, 0.2)', boxShadow: 'var(--shadow-lg)' }}>
+                  <div className="h-1 w-full" style={{ background: '#F59E0B' }} />
+                  <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                    <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: '#F59E0B' }}>
+                      <CheckCircle2 size={16} /> Correction Submitted
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>The corrected resolution has been recorded and the knowledge base updated.</p>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <div className="p-4 rounded-xl border" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+                      <p className="text-sm font-medium mb-1.5" style={{ color: '#F59E0B' }}>Corrected Resolution</p>
+                      <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--argus-text-primary)' }}>{correctionText}</p>
+                    </div>
+                    <div className="text-xs font-semibold px-3 py-2 rounded-lg border" style={{ background: 'var(--argus-surface-2)', color: '#059669', borderColor: 'rgba(16, 185, 129, 0.25)' }}>
+                      {correctionType === 'verified' ? 'Verified Reusable Fix — Embedded into knowledge base' : 'Temporary Workaround — Not embedded into knowledge base'}
                     </div>
                   </div>
-                  
-                  <div className="p-3 rounded-lg border flex items-start gap-3 mt-4" style={{ background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
-                    <Activity size={16} className="mt-0.5" style={{ color: 'var(--argus-emerald)' }} />
-                    <div>
-                      <h4 className="text-xs font-semibold" style={{ color: 'var(--argus-emerald)' }}>Validation Complete</h4>
-                      <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: 'var(--argus-text-muted)' }}>
-                        Sandbox tests executed successfully. No human intervention was required.
-                      </p>
-                    </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
+                  <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
+                  <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
+                    <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--argus-emerald)' }}>
+                      <CheckCircle2 size={16} /> Auto-Resolution Audit
+                    </h3>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--argus-text-muted)' }}>This ticket was handled autonomously by Argus.</p>
                   </div>
-
-                  {/* Agent verification controls for auto-resolved tickets */}
-                  <div className="mt-4 space-y-3">
-                    <div className="text-sm font-medium" style={{ color: 'var(--argus-text-primary)' }}>Was this resolution correct?</div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={handleMarkYes}
-                        className={`px-3 py-1.5 rounded-md font-semibold ${verificationState === 'yes' ? 'bg-emerald-500 text-white' : 'bg-white border'}`}
-                      >
-                        ✓ Yes, correct
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleMarkNo}
-                        className={`px-3 py-1.5 rounded-md font-semibold ${verificationState === 'no' ? 'bg-red-500 text-white' : 'bg-white border'}`}
-                      >
-                        ✗ No, incorrect
-                      </button>
+                  <div className="p-5 space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium" style={{ color: 'var(--argus-text-secondary)' }}>Applied Resolution</Label>
+                      <div className="p-4 rounded-xl border text-sm whitespace-pre-wrap" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)', color: 'var(--argus-text-primary)' }}>
+                        {appliedResolution}
+                      </div>
                     </div>
 
-                    {showCorrectionForm && (
-                      <form onSubmit={handleSubmitCorrection} className="p-3 rounded-lg border mt-2" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">What was the correct resolution?</Label>
-                          <Textarea required rows={5} value={correctionText} onChange={(e) => setCorrectionText(e.target.value)} />
-                        </div>
-                        <div className="mt-3">
-                          <Label className="text-sm font-medium">Resolution Type</Label>
-                          <div className="flex items-center gap-3 mt-2">
-                            <button type="button" onClick={() => setCorrectionType('verified')} className={`px-3 py-1 rounded ${correctionType === 'verified' ? 'bg-indigo-600 text-white' : 'bg-white border'}`}>Verified Reusable Fix</button>
-                            <button type="button" onClick={() => setCorrectionType('workaround')} className={`px-3 py-1 rounded ${correctionType === 'workaround' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Temporary Workaround</button>
+                    <div className="p-3 rounded-lg border flex items-start gap-3" style={{ background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                      <Activity size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--argus-emerald)' }} />
+                      <div>
+                        <h4 className="text-xs font-semibold" style={{ color: 'var(--argus-emerald)' }}>Validation Complete</h4>
+                        <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: 'var(--argus-text-muted)' }}>
+                          Sandbox tests executed successfully. No human intervention was required.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Agent verification controls for auto-resolved tickets */}
+                    <div className="mt-4 space-y-3">
+                      <div className="text-sm font-medium" style={{ color: 'var(--argus-text-primary)' }}>Was this resolution correct?</div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={handleMarkYes}
+                          disabled={!!verificationState}
+                          className={`px-3 py-1.5 rounded-md font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            (verificationState as string) === 'yes'
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-400'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-emerald-50 hover:border-emerald-400'
+                          }`}
+                        >
+                          ✓ Yes, correct
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleMarkNo}
+                          disabled={!!verificationState}
+                          className={`px-3 py-1.5 rounded-md font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            verificationState === 'no'
+                              ? 'bg-red-100 text-red-700 border-red-400'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:border-red-400'
+                          }`}
+                        >
+                          ✗ No, incorrect
+                        </button>
+                      </div>
+
+                      {showCorrectionForm && (
+                        <form onSubmit={handleSubmitCorrection} className="p-3 rounded-lg border mt-2" style={{ background: 'var(--argus-surface-2)', borderColor: 'var(--argus-border)' }}>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">What was the correct resolution?</Label>
+                            <Textarea required rows={5} value={correctionText} onChange={(e) => setCorrectionText(e.target.value)} />
                           </div>
-                        </div>
-                        <div className="mt-4">
-                          <Button type="submit" disabled={correctionSubmitting} className="h-10">
-                            {correctionSubmitting ? 'Submitting...' : 'Submit Correction'}
-                          </Button>
-                        </div>
-                        {correctionSuccess && <div className="text-sm text-emerald-600 mt-3">{correctionSuccess}</div>}
-                      </form>
-                    )}
+                          <div className="mt-3">
+                            <Label className="text-sm font-medium">Resolution Type</Label>
+                            <div className="flex items-center gap-3 mt-2">
+                              <button type="button" onClick={() => setCorrectionType('verified')} className={`px-3 py-1 rounded ${correctionType === 'verified' ? 'bg-indigo-600 text-white' : 'bg-white border'}`}>Verified Reusable Fix</button>
+                              <button type="button" onClick={() => setCorrectionType('workaround')} className={`px-3 py-1 rounded ${correctionType === 'workaround' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Temporary Workaround</button>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <Button type="submit" disabled={correctionSubmitting} className="h-10">
+                              {correctionSubmitting ? 'Submitting...' : 'Submit Correction'}
+                            </Button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (card.status === "resolved" || (card.status === "auto_resolved" && agentReviewed)) ? (
+              )
+            ) : card.status === "resolved" ? (
               <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--argus-surface)', borderColor: 'var(--argus-border)', boxShadow: 'var(--shadow-lg)' }}>
                 <div className="h-1 w-full" style={{ background: 'var(--argus-emerald)' }} />
                 <div className="px-5 pt-4 pb-3 border-b" style={{ borderColor: 'var(--argus-border)' }}>
