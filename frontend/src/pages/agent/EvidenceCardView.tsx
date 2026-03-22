@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams, Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { resolveTicket, getTicketEvidence, submitCorrection, markAgentVerified } from "@/services/agent";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,11 +15,7 @@ import { EvidenceCardSkeleton } from "@/components/ui/skeleton-loaders";
 
 export const EvidenceCardView = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  const [resolutionText, setResolutionText] = useState("");
-  const [resolutionType, setResolutionType] = useState<"verified" | "workaround" | "uncertain">("verified");
-  const [overrideReason, setOverrideReason] = useState<string>("");
+  const queryClient = useQueryClient();
 
   const { data: card, isLoading, isError } = useQuery({
     queryKey: ["evidence-card", id],
@@ -53,13 +49,17 @@ export const EvidenceCardView = () => {
     candidateFixes?.[0]?.resolution ||
     "Agent synthesized a novel response or resolution is unavailable.";
 
+  const [resolutionText, setResolutionText] = useState("");
+  const [resolutionType, setResolutionType] = useState<"verified" | "workaround" | "uncertain">("verified");
+  const [overrideReason, setOverrideReason] = useState<string>("");
+
   const acceptMutation = useMutation({
     mutationFn: resolveTicket,
     onSuccess: () => {
-      toast.success('Ticket resolved successfully', {
+      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      toast.success('Resolution saved', {
         description: `Resolution applied to ${id}.`,
       });
-      navigate("/agent");
     },
     onError: () => {
       toast.error('Failed to resolve ticket', {
@@ -71,10 +71,10 @@ export const EvidenceCardView = () => {
   const submitMutation = useMutation({
     mutationFn: resolveTicket,
     onSuccess: () => {
-      toast.success('Ticket resolved successfully', {
+      queryClient.invalidateQueries({ queryKey: ["evidence-card", id] });
+      toast.success('Resolution saved', {
         description: `Resolution applied to ${id}.`,
       });
-      navigate("/agent");
     },
     onError: () => {
       toast.error('Failed to resolve ticket', {
