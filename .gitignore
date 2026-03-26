@@ -36,11 +36,20 @@ data/cluster_map.json
 *.swo
 .DS_Store
 
-# Pytest
+# Pytest & Testing
 .pytest_cache/
 htmlcov/
 .coverage
 coverage.xml
+test_*.py  # Temporary test files
+*_test.py
 
 # Logs
 *.log
+
+# Temporary & Cache Files
+*.tmp
+*.temp
+*.bak
+.ruff_cache/
+.mypy_cache/
