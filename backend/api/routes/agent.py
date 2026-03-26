@@ -196,6 +196,7 @@ async def get_ticket_evidence(ticket_id: str):
             escalation_reason = evidence_card.get("escalation_reason")
 
         # Approximate layer for UI trace when explicit layer is unavailable
+        # Check layers in upstream-to-downstream order (Policy Gate is layer 1, first check)
         layer_intercepted = None
         if isinstance(evidence_card, dict):
             layer_intercepted = evidence_card.get("layer_intercepted")
@@ -208,23 +209,30 @@ async def get_ticket_evidence(ticket_id: str):
             th_b = thresholds.get("threshold_b") if thresholds else None
             th_c = thresholds.get("threshold_c") if thresholds else None
 
-            if outcome and outcome.get("sandbox_passed") is False:
-                layer_intercepted = 6
-            elif (
+            # Layer 1: Policy Gate (VIP, P1/P2 severity, policy keywords) — CHECK FIRST
+            if (
                 "vip" in reason_text
                 or "p1" in reason_text
                 or "p2" in reason_text
                 or "freeze" in reason_text
+                or "policy" in reason_text
             ):
                 layer_intercepted = 1
+            # Layer 2: Novel issue detection
             elif "novel" in reason_text:
                 layer_intercepted = 2
+            # Layer 3: Signal A (Semantic Similarity)
             elif sig_a is not None and th_a is not None and sig_a < th_a:
                 layer_intercepted = 3
+            # Layer 4: Signal B (Resolution Consistency)
             elif sig_b is not None and th_b is not None and sig_b < th_b:
                 layer_intercepted = 4
+            # Layer 5: Signal C (Category Accuracy)
             elif sig_c is not None and th_c is not None and sig_c < th_c:
                 layer_intercepted = 5
+            # Layer 6: Sandbox Execution — CHECK LAST
+            elif outcome and outcome.get("sandbox_passed") is False:
+                layer_intercepted = 6
 
         return {
             **t,

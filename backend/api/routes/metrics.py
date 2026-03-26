@@ -64,9 +64,17 @@ async def get_dashboard_metrics():
         # knowledge_base_coverage
         import services.qdrant as qdrant_svc
 
-        vector_count = (
-            await qdrant_svc.count_vectors() if app_state.get("qdrant_client") else 0
-        )
+        try:
+            vector_count = (
+                await qdrant_svc.count_vectors()
+                if app_state.get("qdrant_client")
+                else 0
+            )
+        except Exception as qdrant_err:
+            logger.warning(
+                f"Qdrant unavailable, returning default metrics: {qdrant_err}"
+            )
+            vector_count = 0
         categories = list(set(o["category"] for o in outcomes if o.get("category")))
         signal_a_rows = [o for o in outcomes if o.get("signal_a") is not None]
         avg_signal_a = (
@@ -120,7 +128,11 @@ async def get_coverage_metrics():
     try:
         import services.qdrant as qdrant_svc
 
-        vector_count = await qdrant_svc.count_vectors()
+        try:
+            vector_count = await qdrant_svc.count_vectors()
+        except Exception as qdrant_err:
+            logger.warning(f"Qdrant unavailable: {qdrant_err}")
+            vector_count = 0
 
         # Unique categories from recent outcomes
         res = (
