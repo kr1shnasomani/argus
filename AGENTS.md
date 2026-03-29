@@ -15,9 +15,6 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 | Document | Role |
 |---|---|
 | **`SOLUTION.md`** | Read-only. Product intent, context, edge cases. Read for *why*. **Do not modify unless the user explicitly asks.** |
-| **`IMPLEMENTATION_CONTEXT.md`** | Authoritative technical spec. Architecture, modules, API design, pipeline stages, tech stack. |
-| **`PIPELINE_STAGES.md`** | Detailed pipeline logic per stage. |
-| **`SIGNALS.md`** | Confidence signal definitions (Signal A/B/C). |
 | **`DATABASE.md`** | Database schema and table reference. |
 | **`API.md`** | API endpoint reference. |
 | **`AGENTS.md`** | This file — operational instructions for AI agents. |
@@ -26,7 +23,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 
 ## 3. Development Workflow
 
-1. **Read the relevant spec file(s)** for the task at hand (e.g., `PIPELINE_STAGES.md` for pipeline changes, `DATABASE.md` for schema changes).
+1. **Read the relevant spec file(s)** for the task at hand (e.g., `DATABASE.md` for schema changes).
 2. **Work module-by-module.** Implement one module, verify it, then move on.
 3. **Minimal first, robust second.** Happy path before error handling.
 4. **Keep modules independent.** Backend `core/` modules must be testable in isolation with mocked services.

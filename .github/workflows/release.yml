@@ -1,0 +1,26 @@
+name: Release v1.0.0
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0
+          name: Release v1.0.0
+          draft: false
+          prerelease: false
+          generate_release_notes: true
