@@ -68,43 +68,29 @@ Ticket Submitted → Policy Gate → Vector Search → Confidence Signals → Sa
 
 ## Local Development Setup
 
-### Prerequisites
-- **Python 3.11+** (for backend & sandbox)
-- **Node.js 18+** (for frontend)
-- **pip** and **npm** (package managers)
+The easiest way to get Argus running for local development is using **Docker Compose**. We have configured it to support live-reloading out of the box.
 
-### 1) Backend (FastAPI on port 8000)
+### 1. Prerequisites
+- **Docker** and **Docker Compose**
+- A Supabase project (for PostgreSQL)
+- A Qdrant Cloud cluster (or equivalent vector database)
 
+### 2. Environment Variables
+Copy the example environment file and update it with your actual keys:
 ```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # macOS/Linux
-pip install -r requirements.txt
-
-export SUPABASE_URL="..."
-export SUPABASE_SERVICE_KEY="..."
-# Set all required environment variables (see below)
-
-PYTHONPATH=$(pwd) uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+cp .env.example .env
 ```
 
-### 2) Sandbox (FastAPI on port 8001)
-
+### 3. Start the application
 ```bash
-cd sandbox
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+docker-compose up --build
 ```
+This single command spins up:
+- **Frontend UI** at [http://localhost:5173](http://localhost:5173) (Vite Dev Server)
+- **Backend API** at [http://localhost:8000](http://localhost:8000)
+- **Sandbox API** at [http://localhost:8001](http://localhost:8001)
 
-### 3) Frontend (React + Vite on port 5173)
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
+*For manual setup instructions (without Docker), please see the [SETUP.md](SETUP.md) guide.*
 
 ---
 
