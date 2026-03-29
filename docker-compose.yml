@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - SANDBOX_URL=http://sandbox:8001
+    env_file:
+      - .env
+    # Map the local code into the container for live reloading
+    volumes:
+      - ./backend:/app
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - sandbox
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Target the development stage to enable Vite's dev server and hot-reloading
+      target: development
+    ports:
+      - "5173:5173"
+    # Map the local code into the container for live reloading, but keep node_modules isolated
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  sandbox:
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    # Map the local code into the container for live reloading
+    volumes:
+      - ./sandbox:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload

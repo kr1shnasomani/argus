@@ -206,8 +206,5 @@ Argus uses **GitHub Actions** for continuous integration and deployment:
 |----------|---------|
 | **[API.md](API.md)** | Complete API endpoint reference |
 | **[DATABASE.md](DATABASE.md)** | Supabase + Qdrant schema |
-| **[PIPELINE_STAGES.md](PIPELINE_STAGES.md)** | Detailed stage documentation |
-| **[SIGNALS.md](SIGNALS.md)** | Confidence signal definitions |
-| **[IMPLEMENTATION_CONTEXT.md](IMPLEMENTATION_CONTEXT.md)** | Technical implementation details |
 | **[SOLUTION.md](SOLUTION.md)** | Authoritative design blueprint (read-only) |
 | **[AGENTS.md](AGENTS.md)** | AI agent development instructions |
