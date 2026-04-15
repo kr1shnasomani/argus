@@ -22,7 +22,7 @@ Response:
 
 ## Tickets
 
-### POST /api/tickets
+### POST /api/tickets/submit
 Submit a new ticket and run the full pipeline.
 
 Content-Type: `multipart/form-data`
@@ -51,8 +51,8 @@ Response (`TicketResponse`):
 ### GET /api/tickets/{ticket_id}
 Returns current ticket state and resolution.
 
-### GET /api/tickets/{ticket_id}/status
-Returns ticket status and resolution text only.
+### POST /api/tickets/{ticket_id}/escalate_user
+Called by an employee to escalate an auto-resolved ticket they are unsatisfied with. Updates status to "escalated", sets "auto_resolved" to False in `ticket_outcomes` and records the escalation.
 
 ---
 
@@ -89,6 +89,10 @@ Behavior:
 - Updates `tickets`: status='resolved', resolved_at, auto_resolved (mirrors outcome value)
 - If `resolution_type=verified`: upserts payload into Qdrant
 - Writes audit entry
+
+### POST /api/tickets/{ticket_id}/verify
+Marks an auto-resolved ticket as verified by an agent.
+Upserts the ticket resolution and embedding into Qdrant to improve future auto-resolutions.
 
 ### PATCH /api/tickets/{ticket_id}/correction
 Agent corrects an auto-resolved ticket marked incorrect.
@@ -152,6 +156,23 @@ Returns all category thresholds.
 ### GET /api/config/thresholds/{category}
 Returns thresholds for one category.
 
+### PATCH /api/config/thresholds/{category}
+Updates thresholds for a specific category. All fields are optional — only provided fields are updated.
+
+Body (`ThresholdUpdate`):
+```json
+{
+  "threshold_a": 0.85,
+  "threshold_b": 0.60,
+  "threshold_c": 0.70,
+  "novelty_threshold": 0.50,
+  "min_sample_size": 30
+}
+```
+
+### GET /api/config/thresholds/impact
+Returns a preview of how many tickets would auto-resolve vs escalate under the current thresholds, for dashboard display.
+
 ### POST /api/simulate
 Dry-run the full pipeline with custom parameters. No DB writes.
 
@@ -198,9 +219,9 @@ Returns full audit hash chain for a specific ticket.
 
 | Service file | Endpoints |
 |---|---|
-| `frontend/src/services/tickets.ts` | `POST /api/tickets`, `GET /api/tickets/{id}`, `GET /api/tickets/{id}/status` |
-| `frontend/src/services/agent.ts` | `GET /api/tickets/agent/escalated`, `GET /api/tickets/{id}/evidence`, `POST /api/tickets/{id}/resolve`, `PATCH /api/tickets/{id}/correction`, `GET /api/tickets/agent/all` |
-| `frontend/src/services/config.ts` | `GET /api/config/health`, `GET /api/config/users`, `GET /api/config/systems`, `GET /api/config/thresholds`, `POST /api/simulate` |
+| `frontend/src/services/tickets.ts` | `POST /api/tickets/submit`, `GET /api/tickets/{id}`, `POST /api/tickets/{id}/escalate_user` |
+| `frontend/src/services/agent.ts` | `GET /api/tickets/agent/escalated`, `GET /api/tickets/{id}/evidence`, `POST /api/tickets/{id}/resolve`, `POST /api/tickets/{id}/verify`, `PATCH /api/tickets/{id}/correction`, `GET /api/tickets/agent/all` |
+| `frontend/src/services/config.ts` | `GET /api/config/health`, `GET /api/config/users`, `GET /api/config/systems`, `GET /api/config/thresholds`, `GET /api/config/thresholds/{category}`, `PATCH /api/config/thresholds/{category}`, `GET /api/config/thresholds/impact`, `POST /api/simulate` |
 | `frontend/src/services/metrics.ts` | `GET /api/metrics/dashboard`, `GET /api/metrics/coverage`, `GET /api/metrics/drift` |
 | `frontend/src/services/audit.ts` | `GET /api/audit/logs`, `GET /api/audit/{ticket_id}` |
 
