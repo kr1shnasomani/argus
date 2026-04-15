@@ -11,15 +11,6 @@ env:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - image: backend
-            context: ./backend
-          - image: frontend
-            context: ./frontend
-          - image: sandbox
-            context: ./sandbox
     permissions:
       contents: read
       packages: write
@@ -39,12 +30,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/argus
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

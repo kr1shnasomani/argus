@@ -568,30 +568,36 @@ export const EvidenceCardView = () => {
                     <div className="mt-4 space-y-3">
                       <div className="text-sm font-medium" style={{ color: 'var(--argus-text-primary)' }}>Was this resolution correct?</div>
                       <div className="flex items-center gap-3">
-                        <button
+                        <Button
+                          variant="outline"
+                          size="sm"
                           type="button"
                           onClick={handleMarkYes}
                           disabled={!!verificationState}
-                          className={`px-3 py-1.5 rounded-md font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className="h-8 text-xs bg-white hover:bg-emerald-50 border-gray-200 hover:border-emerald-400 font-semibold"
+                          style={
                             (verificationState as string) === 'yes'
-                              ? 'bg-emerald-100 text-emerald-700 border-emerald-400'
-                              : 'bg-white text-gray-700 border-gray-200 hover:bg-emerald-50 hover:border-emerald-400'
-                          }`}
+                              ? { backgroundColor: 'var(--argus-emerald-light)', color: 'var(--argus-emerald)', borderColor: 'var(--argus-emerald)' }
+                              : {}
+                          }
                         >
                           ✓ Yes, correct
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           type="button"
                           onClick={handleMarkNo}
                           disabled={!!verificationState}
-                          className={`px-3 py-1.5 rounded-md font-semibold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className="h-8 text-xs bg-white hover:bg-red-50 border-gray-200 hover:border-red-400 font-semibold"
+                          style={
                             verificationState === 'no'
-                              ? 'bg-red-100 text-red-700 border-red-400'
-                              : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:border-red-400'
-                          }`}
+                              ? { backgroundColor: 'var(--argus-red-light)', color: 'var(--argus-red)', borderColor: 'var(--argus-red)' }
+                              : {}
+                          }
                         >
                           ✗ No, incorrect
-                        </button>
+                        </Button>
                       </div>
 
                       {showCorrectionForm && (

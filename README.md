@@ -68,7 +68,7 @@ Ticket Submitted → Policy Gate → Vector Search → Confidence Signals → Sa
 
 ## Local Development Setup
 
-The easiest way to get Argus running for local development is using **Docker Compose**. We have configured it to support live-reloading out of the box.
+The easiest way to get Argus running is using the **unified monolithic Docker image**. We have configured it so the backend, sandbox, and frontend all reside in a single deployable artifact.
 
 ### 1. Prerequisites
 - **Docker** and **Docker Compose**
@@ -82,12 +82,20 @@ cp .env.example .env
 ```
 
 ### 3. Start the application
+You can spin up the entire 3-tier architecture simultaneously via the root `docker-compose`:
 ```bash
 docker-compose up --build
 ```
-This single command spins up:
-- **Frontend UI** at [http://localhost:5173](http://localhost:5173) (Vite Dev Server)
-- **Backend API** at [http://localhost:8000](http://localhost:8000)
+
+You can optionally run specific services by passing the `SERVICE` environment variable directly to the image:
+```bash
+docker run --env-file .env -e SERVICE=frontend -p 5173:5173 argus-all:latest
+```
+*(Valid service targets: `backend`, `frontend`, `sandbox`, `all`)*
+
+When running with `SERVICE=all`, the single container manages:
+- **Frontend UI** at [http://localhost:5173](http://localhost:5173) 
+- **Backend API** at [http://localhost:8005](http://localhost:8005)
 - **Sandbox API** at [http://localhost:8001](http://localhost:8001)
 
 *For manual setup instructions (without Docker), please see the [SETUP.md](SETUP.md) guide.*

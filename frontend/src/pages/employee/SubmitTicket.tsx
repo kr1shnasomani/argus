@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { submitTicket } from "@/services/tickets";
+import { submitTicket, escalateTicketByUser } from "@/services/tickets";
 import { getSystems } from "@/services/config";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -185,6 +185,7 @@ export const SubmitTicket = () => {
             setFormData({ ...formData, description: "", category: "" });
             setFile(null);
           }}
+          onStatusChange={(newStatus) => setSubmittedStatus(newStatus)}
         />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
@@ -431,6 +432,7 @@ interface TicketResultCardProps {
   onViewTicket: () => void;
   onReturn: () => void;
   onSubmitAnother: () => void;
+  onStatusChange?: (newStatus: string) => void;
 }
 
 const STATUS_CONFIG = {
@@ -480,7 +482,21 @@ function TicketResultCard({
   onViewTicket,
   onReturn,
   onSubmitAnother,
+  onStatusChange,
 }: TicketResultCardProps) {
+  const escalateMutation = useMutation({
+    mutationFn: () => escalateTicketByUser(ticketId),
+    onSuccess: () => {
+      onStatusChange?.("escalated");
+      toast.success("Escalated to Agent");
+    },
+    onError: (error: any) => {
+      toast.error("Escalation failed", {
+        description: error.response?.data?.detail || "Please try again later."
+      });
+    }
+  });
+
   const cfg =
     STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.processing;
   const ResultIcon = cfg.icon;
@@ -575,6 +591,27 @@ function TicketResultCard({
                     {latencyMs.toFixed(0)}ms
                   </span>
                 </p>
+              )}
+              
+              {/* Escalation Prompt */}
+              {status === "auto_resolved" && (
+                <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: 'rgba(5, 150, 105, 0.15)' }}>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--argus-emerald)' }}>
+                    Did this fix your issue?
+                  </span>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => escalateMutation.mutate()}
+                      disabled={escalateMutation.isPending}
+                      className="w-full sm:w-auto h-8 text-xs font-semibold hover:bg-red-50"
+                      style={{ backgroundColor: 'var(--argus-red-light)', color: 'var(--argus-red)', borderColor: 'var(--argus-red)' }}
+                    >
+                      {escalateMutation.isPending ? "Escalating..." : "✗ No, Escalate"}
+                    </Button>
+                  </div>
+                </div>
               )}
             </motion.div>
           ) : (

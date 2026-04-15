@@ -58,9 +58,15 @@ def _format_ticket_ref(point_id: Any, payload: Dict[str, Any]) -> str:
 def _top_candidate_fixes(qdrant_results: list, top_k: int = 3) -> list:
     items = []
     for item in qdrant_results[:top_k]:
-        payload = item if isinstance(item, dict) else {}
-        score = payload.get("score")
-        point_id = payload.get("point_id")
+        if isinstance(item, dict):
+            score = item.get("score")
+            point_id = item.get("point_id") or item.get("id")
+            payload = item.get("payload", item)
+        else:
+            score = getattr(item, "score", None)
+            point_id = getattr(item, "id", None)
+            payload = getattr(item, "payload", {}) or {}
+
         resolution = payload.get("resolution")
         if not resolution:
             continue
@@ -123,6 +129,8 @@ async def process_ticket(
         action_payload = extra.get("action_payload", {}) if extra else {}
         sandbox_passed = extra.get("sandbox_passed", False) if extra else False
         resolution_message = extra.get("resolution_message") if extra else None
+        
+        candidate_fixes = _top_candidate_fixes(qdrant_results, top_k=3)
 
         # Build ticket_outcomes dict
         outcome_data = {
@@ -147,8 +155,8 @@ async def process_ticket(
             "ai_suggestion": None
             if status == "auto_resolved"
             else (
-                qdrant_results[0].get("resolution")
-                if qdrant_results and isinstance(qdrant_results[0], dict)
+                candidate_fixes[0].get("resolution")
+                if candidate_fixes and isinstance(candidate_fixes[0], dict)
                 else None
             ),
             "retrospective_match": None,
@@ -193,7 +201,6 @@ async def process_ticket(
 
         # Generate evidence card and write audit log for ALL tickets
         try:
-            candidate_fixes = _top_candidate_fixes(qdrant_results, top_k=3)
             if status == "auto_resolved":
                 evidence_card_dict = {
                     "decision": "AUTO_RESOLVED",
@@ -435,8 +442,8 @@ async def process_ticket(
     ticket_model = TicketSubmission(**submission_data)
 
     policy_res = hard_policy_gate(ticket_model, user_model, system_model)
-    if policy_res.action != GateAction.PROCEED:
-        return await conclude("escalated", policy_res.action, policy_res.reason)
+    # We evaluate the gate, but do not exit immediately if it fails.
+    # We MUST fetch embeddings and retrieve similar tickets so the human agent receives candidate fixes.
 
     # --- Layer 1a: Embedding ---
     logs.append("Running Layer 1a: Embedding ticket context")
@@ -447,6 +454,9 @@ async def process_ticket(
         vector = await embed_ticket(ticket["description"], attachment_url=url)
     except Exception as e:
         logger.error(f"Embedding failed: {e}")
+        # If policy already escalated, prefer reporting the policy reason.
+        if policy_res.action != GateAction.PROCEED:
+            return await conclude("escalated", policy_res.action, policy_res.reason)
         return await conclude(
             "escalated", GateAction.ESCALATE, f"Embedding generation failed: {e}"
         )
@@ -457,13 +467,12 @@ async def process_ticket(
         qdrant_results = await retrieve_similar(vector, top_k=5)
     except Exception as e:
         logger.error(f"Retrieval failed: {e}")
+        if policy_res.action != GateAction.PROCEED:
+            return await conclude("escalated", policy_res.action, policy_res.reason)
         return await conclude(
             "escalated", GateAction.ESCALATE, f"Vector DB retrieval failed: {e}"
         )
 
-    # --- Layer 2: Novelty Detection ---
-    logs.append("Running Layer 2: Novelty Detection")
-    novelty_res = check_novelty(qdrant_results, threshold=0.50)
     # Convert ScoredPoint payloads to plain dicts for JSON serialization
     extra_state = {
         "qdrant_results": [
@@ -475,6 +484,15 @@ async def process_ticket(
             for r in qdrant_results
         ]
     }
+
+    # Now that we have qdrant_results (and therefore candidate fixes for the UI),
+    # enforce the Policy Gate exit if it failed.
+    if policy_res.action != GateAction.PROCEED:
+        return await conclude("escalated", policy_res.action, policy_res.reason, extra_state)
+
+    # --- Layer 2: Novelty Detection ---
+    logs.append("Running Layer 2: Novelty Detection")
+    novelty_res = check_novelty(qdrant_results, threshold=0.50)
     if novelty_res.action == GateAction.ESCALATE:
         supabase_client.insert_novel_ticket(
             ticket["id"], qdrant_results[0].score if qdrant_results else 0.0

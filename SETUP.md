@@ -16,7 +16,7 @@ Before you begin, ensure you have the following installed:
 
 ## 🐳 Quick Start (Recommended using Docker)
 
-The easiest way to get Argus running for local development is using Docker Compose. We have configured it to support **live-reloading** (hot module replacement) out of the box, meaning any changes you make to the code locally will automatically reflect inside the containers!
+The easiest way to get Argus running is using the unified **Docker Image**. We have consolidated the frontend, backend, and sandbox into a single deployable artifact to prevent repository drift.
 
 1.  **Clone the repository:**
     ```bash
@@ -30,15 +30,17 @@ The easiest way to get Argus running for local development is using Docker Compo
     cp .env.example .env
     ```
 
-3.  **Start the application:**
+3.  **Start all applications simultaneously:**
     ```bash
     docker-compose up --build
     ```
+    
+    *(Note: To target individual services in the single image, run `docker run --env-file .env -e SERVICE=<frontend|backend|sandbox> argus-all`)*
 
 4.  **Access the application:**
-    *   **Frontend UI:** [http://localhost:5173](http://localhost:5173) (Vite Dev Server)
-    *   **Backend API (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
-    *   **Sandbox API (Swagger UI):** [http://localhost:8001/docs](http://localhost:8001/docs)
+    *   **Frontend UI:** [http://localhost:5173](http://localhost:5173)
+    *   **Backend API** [http://localhost:8005/docs](http://localhost:8005/docs)
+    *   **Sandbox API** [http://localhost:8001/docs](http://localhost:8001/docs)
 
     *To stop the application, run `docker-compose down`. If you ever add new dependencies to `requirements.txt` or `package.json`, you should rebuild using `docker-compose up --build`.*
 
@@ -95,7 +97,7 @@ The main FastAPI application.
     Ensure your `.env` file (either in `backend` or the root directory) has `SANDBOX_URL=http://localhost:8001`, as well as your Qdrant and Supabase credentials.
 5.  Run the Backend API:
     ```bash
-    uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
     ```
 
 ### 4. Frontend Setup

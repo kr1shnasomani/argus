@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getTicketStatus } from "@/services/tickets";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getTicketStatus, escalateTicketByUser } from "@/services/tickets";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, AlertTriangle, Clock, Zap, Send, Users, Loader2, Timer } from "lucide-react";
@@ -9,12 +9,20 @@ import { TicketStatusSkeleton } from "@/components/ui/skeleton-loaders";
 
 export const TicketStatus = () => {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["ticket", id],
     queryFn: () => getTicketStatus(id!),
     refetchInterval: (query) => query.state.data?.status === "processing" ? 3000 : false,
     enabled: !!id,
+  });
+
+  const escalateMutation = useMutation({
+    mutationFn: () => escalateTicketByUser(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+    },
   });
 
   if (isLoading) {
@@ -252,6 +260,24 @@ export const TicketStatus = () => {
                 style={{ color: 'var(--argus-text-secondary)' }}
               >
                 {data.resolution}
+              </div>
+
+              <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: 'rgba(5, 150, 105, 0.15)' }}>
+                <span className="text-xs font-semibold" style={{ color: 'var(--argus-emerald)' }}>
+                  Did this fix your issue?
+                </span>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => escalateMutation.mutate()}
+                    disabled={escalateMutation.isPending}
+                    className="w-full sm:w-auto h-8 text-xs bg-white hover:bg-red-50 border-gray-200 hover:border-red-400 font-semibold"
+                    style={{ backgroundColor: 'var(--argus-red-light)', color: 'var(--argus-red)', borderColor: 'var(--argus-red)' }}
+                  >
+                    {escalateMutation.isPending ? "Escalating..." : "✗ No, Escalate"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}

@@ -4,7 +4,7 @@ pydantic==2.12.0
 pydantic-settings==2.12.0
 httpx==0.28.1
 qdrant-client==1.13.2
-supabase==2.13.0
+supabase>=2.13.0
 python-dotenv==1.0.1
 python-multipart==0.0.20
 email-validator==2.2.0

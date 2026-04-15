@@ -167,3 +167,61 @@ async def get_ticket_status(ticket_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{ticket_id}/escalate_user")
+async def escalate_ticket_by_user(ticket_id: str):
+    """
+    Called by an employee to escalate an auto-resolved ticket they are unsatisfied with.
+    """
+    from utils.audit_hash import log_to_audit
+    supabase = get_supabase()
+    try:
+        # Check if the ticket exists
+        ticket_res = supabase.table("tickets").select("*").eq("id", ticket_id).execute()
+        if not ticket_res.data:
+            raise HTTPException(status_code=404, detail="Ticket not found.")
+        
+        ticket = ticket_res.data[0]
+        if ticket["status"] != "auto_resolved":
+            raise HTTPException(status_code=400, detail="Only auto-resolved tickets can be manually escalated.")
+
+        # Update tickets table
+        supabase.table("tickets").update({"status": "escalated"}).eq("id", ticket_id).execute()
+
+        # Update ticket_outcomes table
+        reason = "User stated the auto-resolution did not resolve the issue"
+        supabase.table("ticket_outcomes").update({
+            "auto_resolved": False,
+            "agent_verified": None,
+            "escalation_reason": reason
+        }).eq("ticket_id", ticket_id).execute()
+
+        # Get existing evidence card if available to log it again
+        audit_res = (
+            supabase.table("audit_log")
+            .select("evidence_card")
+            .eq("ticket_id", ticket_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        evidence_card = audit_res.data[0]["evidence_card"] if audit_res.data else {}
+        if isinstance(evidence_card, dict):
+            evidence_card["decision"] = "ESCALATED_BY_USER"
+            evidence_card["escalation_reason"] = reason
+
+        # Log to audit 
+        log_to_audit(
+            ticket_id=ticket_id,
+            decision="ESCALATED_BY_USER",
+            evidence_card=evidence_card,
+            supabase_client=supabase
+        )
+
+        return {"ticket_id": ticket_id, "status": "escalated", "message": "Ticket escalated to human agent."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to manually escalate ticket {ticket_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

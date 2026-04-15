@@ -438,6 +438,9 @@ async def verify_auto_resolution(ticket_id: str):
     """
     Mark an auto-resolved ticket as verified by an agent.
     """
+    from services.jina import generate_embedding
+    from services.qdrant import upsert_ticket as qdrant_upsert
+
     supabase = get_supabase()
     try:
         outcome_res = (
@@ -449,9 +452,29 @@ async def verify_auto_resolution(ticket_id: str):
         if not outcome_res.data:
             raise HTTPException(status_code=404, detail="Ticket outcome not found.")
 
+        outcome = outcome_res.data[0]
+
         supabase.table("ticket_outcomes").update({"agent_verified": True}).eq(
             "ticket_id", ticket_id
         ).execute()
+
+        # Push to Qdrant to improve future auto-resolutions
+        ticket_res = supabase.table("tickets").select("*").eq("id", ticket_id).execute()
+        if ticket_res.data:
+            ticket = ticket_res.data[0]
+            vector = await generate_embedding(ticket.get("description", ""))
+            await qdrant_upsert(
+                ticket_id=ticket_id,
+                vector=vector,
+                payload={
+                    "resolution": outcome.get("resolution"),
+                    "resolution_cluster": outcome.get("resolution_cluster") or "agent_verified",
+                    "verified": True,
+                    "category": ticket.get("category"),
+                    "severity": ticket.get("severity")
+                }
+            )
+
         return {"ticket_id": ticket_id, "agent_verified": True}
     except HTTPException:
         raise

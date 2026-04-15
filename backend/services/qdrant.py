@@ -12,6 +12,10 @@ QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION_NAME", "resolved_tickets")
 if not QDRANT_URL or not QDRANT_API_KEY:
     raise ValueError("Missing Qdrant credentials in .env")
 
+import warnings
+
+warnings.filterwarnings("ignore", message=".*Qdrant client version.*")
+
 # Initialize async client
 client = AsyncQdrantClient(
     url=QDRANT_URL,
