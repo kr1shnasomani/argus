@@ -24,6 +24,13 @@ updates:
     labels:
       - "dependencies"
       - "python"
+    ignore:
+      # pytest 9.x is incompatible with all versions of pytest-asyncio
+      - dependency-name: "pytest"
+        versions: [">=9"]
+      # TypeScript 6 is a major breaking release — hold until ecosystem catches up
+      - dependency-name: "typescript"
+        versions: [">=6"]
 
   # Python — sandbox
   - package-ecosystem: "pip"
@@ -44,6 +51,13 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
+    ignore:
+      # ESLint 10 is a major breaking release — plugins not compatible yet
+      - dependency-name: "eslint"
+        versions: [">=10"]
+      # TypeScript 6 is a major breaking release
+      - dependency-name: "typescript"
+        versions: [">=6"]
 
   # Docker — base image in Dockerfile
   - package-ecosystem: "docker"
