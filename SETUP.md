@@ -37,15 +37,41 @@ cp .env.example .env
 
 ### 3. Run (two modes)
 
-**Mode A — build locally** *(use this until the image is on GHCR)*
+**Mode A — build locally** *(use this until the image is on GHCR, or after code changes)*
 ```bash
 docker compose up --build
 ```
 
-**Mode B — pull from GHCR** *(use this once the workflow has pushed the image)*
+**Mode B — pull from GHCR** *(use this once the workflow has pushed the multi-arch image)*
 ```bash
 docker compose pull
 docker compose up
+```
+
+Docker Desktop will show **3 separate containers**:
+
+| Container | URL |
+|---|---|
+| `argus-backend-1` | [http://localhost:8005/docs](http://localhost:8005/docs) |
+| `argus-sandbox-1` | [http://localhost:8001/docs](http://localhost:8001/docs) |
+| `argus-frontend-1` | [http://localhost:5173](http://localhost:5173) |
+
+### 4. Individual service control
+
+```bash
+# Start only one service
+docker compose up backend
+docker compose up sandbox
+docker compose up frontend
+
+# Restart a single service
+docker compose restart backend
+
+# View logs for one service
+docker compose logs -f backend
+
+# Stop everything
+docker compose down
 ```
 
 Docker Desktop will pull `ghcr.io/kr1shnasomani/argus:latest` and start three services inside the container managed by **supervisord**:

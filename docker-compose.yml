@@ -1,21 +1,47 @@
 services:
-  argus:
-    # 'image' serves dual purpose:
-    #   - Tags the locally built image with this name
-    #   - Is the pull target once the workflow has pushed to GHCR
-    # Run locally:  docker compose up --build
-    # Pull + run:   docker compose pull && docker compose up
+  # ── Backend API ─────────────────────────────────────────────── port 8005 ──
+  backend:
     image: ghcr.io/kr1shnasomani/argus:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8005:8005"   # Backend API  →  http://localhost:8005/docs
-      - "8001:8001"   # Sandbox API  →  http://localhost:8001/docs
-      - "5173:5173"   # Frontend UI  →  http://localhost:5173
+      - "8005:8005"
     environment:
-      - SERVICE=all
-      - SANDBOX_URL=http://localhost:8001
+      - SERVICE=backend
+      # When running as separate containers, backend must reach sandbox by
+      # its Docker service name, not localhost
+      - SANDBOX_URL=http://sandbox:8001
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      - sandbox
+
+  # ── Sandbox API ─────────────────────────────────────────────── port 8001 ──
+  sandbox:
+    image: ghcr.io/kr1shnasomani/argus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE=sandbox
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # ── Frontend UI ─────────────────────────────────────────────── port 5173 ──
+  frontend:
+    image: ghcr.io/kr1shnasomani/argus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - SERVICE=frontend
     env_file:
       - .env
     restart: unless-stopped
