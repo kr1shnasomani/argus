@@ -82,6 +82,10 @@ updates:
     groups:
       docker-base:
         patterns: ["*"]
+    ignore:
+      # Pinned to Python 3.11 for compatibility — do not auto-bump major versions
+      - dependency-name: "python"
+        versions: [">=3.12"]
     labels:
       - "dependencies"
       - "docker"
