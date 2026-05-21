@@ -1,16 +1,21 @@
-version: '3.8'
-
 services:
   argus:
+    # 'image' serves dual purpose:
+    #   - Tags the locally built image with this name
+    #   - Is the pull target once the workflow has pushed to GHCR
+    # Run locally:  docker compose up --build
+    # Pull + run:   docker compose pull && docker compose up
+    image: ghcr.io/kr1shnasomani/argus:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8005:8005"
-      - "8001:8001"
-      - "5173:5173"
+      - "8005:8005"   # Backend API  →  http://localhost:8005/docs
+      - "8001:8001"   # Sandbox API  →  http://localhost:8001/docs
+      - "5173:5173"   # Frontend UI  →  http://localhost:5173
     environment:
-      - SANDBOX_URL=http://localhost:8001
       - SERVICE=all
+      - SANDBOX_URL=http://localhost:8001
     env_file:
       - .env
+    restart: unless-stopped

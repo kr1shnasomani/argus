@@ -1,119 +1,162 @@
-# Argus Setup Guide
+# Argus — Setup Guide
 
-This guide provides instructions for setting up the Argus Intelligent IT Ticket Resolution system locally.
-
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-*   **For Docker Setup (Recommended):** [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
-*   **For Manual Setup (Alternative):** [Python 3.11+](https://www.python.org/downloads/) and [Node.js 20+](https://nodejs.org/)
-*   [Git](https://git-scm.com/)
-*   A Supabase project (for PostgreSQL)
-*   A Qdrant Cloud cluster (or equivalent vector database)
+This guide covers both the recommended Docker-based setup and the manual fallback for local development.
 
 ---
 
-## 🐳 Quick Start (Recommended using Docker)
+## Prerequisites
 
-The easiest way to get Argus running is using the unified **Docker Image**. We have consolidated the frontend, backend, and sandbox into a single deployable artifact to prevent repository drift.
+| Requirement | Docker Setup | Manual Setup |
+|---|---|---|
+| [Docker Desktop](https://docs.docker.com/get-docker/) | ✅ Required | ❌ Not needed |
+| [Python 3.11+](https://www.python.org/downloads/) | ❌ Not needed | ✅ Required |
+| [Node.js 18+](https://nodejs.org/) | ❌ Not needed | ✅ Required |
+| [Git](https://git-scm.com/) | ✅ Required | ✅ Required |
+| Supabase project | ✅ Required | ✅ Required |
+| Qdrant Cloud cluster | ✅ Required | ✅ Required |
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd argus
-    ```
+---
 
-2.  **Environment Variables:**
-    Copy the example environment file and update it with your actual keys (like OpenAI API key, Jina API key, Supabase keys, and Qdrant URL/API key).
-    ```bash
-    cp .env.example .env
-    ```
+## 🐳 Quick Start with Docker (Recommended)
 
-3.  **Start all applications simultaneously:**
-    ```bash
-    docker-compose up --build
-    ```
-    
-    *(Note: To target individual services in the single image, run `docker run --env-file .env -e SERVICE=<frontend|backend|sandbox> argus-all`)*
+The published image on **GitHub Container Registry (GHCR)** bundles the frontend, backend, and sandbox into a single deployable container so you never have to build locally.
 
-4.  **Access the application:**
-    *   **Frontend UI:** [http://localhost:5173](http://localhost:5173)
-    *   **Backend API** [http://localhost:8005/docs](http://localhost:8005/docs)
-    *   **Sandbox API** [http://localhost:8001/docs](http://localhost:8001/docs)
+### 1. Clone the repository
 
-    *To stop the application, run `docker-compose down`. If you ever add new dependencies to `requirements.txt` or `package.json`, you should rebuild using `docker-compose up --build`.*
+```bash
+git clone https://github.com/kr1shnasomani/argus.git
+cd argus
+```
+
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+# Edit .env with your actual API keys (Supabase, Qdrant, Jina, Groq, Gemini, OpenRouter)
+```
+
+### 3. Run (two modes)
+
+**Mode A — build locally** *(use this until the image is on GHCR)*
+```bash
+docker compose up --build
+```
+
+**Mode B — pull from GHCR** *(use this once the workflow has pushed the image)*
+```bash
+docker compose pull
+docker compose up
+```
+
+Docker Desktop will pull `ghcr.io/kr1shnasomani/argus:latest` and start three services inside the container managed by **supervisord**:
+
+| Service | URL |
+|---|---|
+| **Frontend UI** | [http://localhost:5173](http://localhost:5173) |
+| **Backend API** | [http://localhost:8005/docs](http://localhost:8005/docs) |
+| **Sandbox API** | [http://localhost:8001/docs](http://localhost:8001/docs) |
+
+To stop: `docker compose down`
+
+### 4. Pull image directly (without Compose)
+
+```bash
+docker pull ghcr.io/kr1shnasomani/argus:latest
+
+docker run --rm \
+  --env-file .env \
+  -e SERVICE=all \
+  -p 8005:8005 \
+  -p 8001:8001 \
+  -p 5173:5173 \
+  ghcr.io/kr1shnasomani/argus:latest
+```
+
+### 5. Run individual services
+
+You can target a specific tier by setting the `SERVICE` environment variable:
+
+```bash
+# Backend only
+docker run --env-file .env -e SERVICE=backend -p 8005:8005 ghcr.io/kr1shnasomani/argus:latest
+
+# Sandbox only
+docker run --env-file .env -e SERVICE=sandbox -p 8001:8001 ghcr.io/kr1shnasomani/argus:latest
+
+# Frontend only
+docker run --env-file .env -e SERVICE=frontend -p 5173:5173 ghcr.io/kr1shnasomani/argus:latest
+```
+
+### 6. Build locally (if you've made code changes)
+
+To build the image from source instead of pulling:
+
+```bash
+# In docker-compose.yml, comment out 'image:' and uncomment the 'build:' block, then:
+docker compose up --build
+```
 
 ---
 
 ## 🛠️ Manual Setup (Alternative Fallback)
 
-If Docker isn't working for you, or if you prefer running services directly on your host machine to use specific local debugging tools, follow these steps.
+Use this if you prefer running services directly on your host for debugging.
 
-### 1. Database & Infrastructure Setup
+### 1. Database & Infrastructure
 
-Since Argus relies on Supabase and Qdrant Cloud, ensure your `.env` file (placed in the root directory) contains the correct connection URLs and API keys for both services. Additionally, initialize your Supabase PostgreSQL database using the `database/schema.sql` file.
+Ensure your `.env` (in the project root) contains valid credentials for:
+- **Supabase** — PostgreSQL connection + service role key
+- **Qdrant Cloud** — cluster URL + API key
 
-### 2. Sandbox Setup
+Initialise the Supabase schema using `database/schema.sql`.
 
-The Sandbox is an isolated mock environment for AI agent action testing.
+### 2. Sandbox (Port 8001)
 
-1.  Navigate to the sandbox directory:
-    ```bash
-    cd sandbox
-    ```
-2.  Create and activate a virtual environment:
-    ```bash
-    python3.11 -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  Run the Sandbox API:
-    ```bash
-    uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-    ```
+```bash
+cd sandbox
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
 
-### 3. Backend Setup
+### 3. Backend (Port 8005)
 
-The main FastAPI application.
+```bash
+cd backend
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+# Ensure SANDBOX_URL=http://localhost:8001 is set in your .env
+uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
+```
 
-1.  Open a new terminal and navigate to the backend directory:
-    ```bash
-    cd backend
-    ```
-2.  Create and activate a virtual environment:
-    ```bash
-    python3.11 -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  Configure Environment Variables:
-    Ensure your `.env` file (either in `backend` or the root directory) has `SANDBOX_URL=http://localhost:8001`, as well as your Qdrant and Supabase credentials.
-5.  Run the Backend API:
-    ```bash
-    uvicorn api.main:app --host 0.0.0.0 --port 8005 --reload
-    ```
+### 4. Frontend (Port 5173)
 
-### 4. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-The React/Vite user interface.
+Access the UI at [http://localhost:5173](http://localhost:5173).
 
-1.  Open a new terminal and navigate to the frontend directory:
-    ```bash
-    cd frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Run the Frontend Development Server:
-    ```bash
-    npm run dev
-    ```
-4.  Access the UI at the URL provided in the terminal (usually `http://localhost:5173`).
+---
+
+## Environment Variables Reference
+
+| Variable | Required | Description |
+|---|---|---|
+| `SUPABASE_URL` | ✅ | Your Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | ✅ | Service role key (bypasses RLS) |
+| `QDRANT_URL` | ✅ | Qdrant Cloud cluster endpoint |
+| `QDRANT_API_KEY` | ✅ | Qdrant API key |
+| `QDRANT_COLLECTION_NAME` | ✅ | Vector collection (default: `resolved_tickets`) |
+| `JINA_API_KEY` | ✅ | Jina AI embeddings key |
+| `OPENROUTER_API_KEY` | ✅ | Primary LLM provider |
+| `GROQ_API_KEY` | ⚠️ Fallback | Secondary LLM provider |
+| `GOOGLE_GEMINI_API_KEY` | ⚠️ Fallback | Tertiary LLM provider |
+| `SANDBOX_URL` | ✅ | `http://localhost:8001` (local) or Render URL (production) |
+| `DEFAULT_THRESHOLD_A` | Optional | Semantic similarity threshold (default: `0.85`) |
+| `DEFAULT_THRESHOLD_B` | Optional | Resolution consistency threshold (default: `0.60`) |
+| `DEFAULT_THRESHOLD_C` | Optional | Category accuracy threshold (default: `0.70`) |

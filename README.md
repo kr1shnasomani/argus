@@ -10,6 +10,7 @@
 [![Supabase](https://img.shields.io/badge/Database-Supabase-336791?style=for-the-badge&logo=supabase&logoColor=white)](DATABASE.md)
 [![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-EA4AAA?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0VBNEFBQSIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6Ii8+PC9zdmc+)](DATABASE.md)
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](#cicd-pipeline)
+[![Docker](https://img.shields.io/badge/Container-GHCR-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://ghcr.io/kr1shnasomani/argus)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 
 </div>
@@ -68,37 +69,42 @@ Ticket Submitted → Policy Gate → Vector Search → Confidence Signals → Sa
 
 ## Local Development Setup
 
-The easiest way to get Argus running is using the **unified monolithic Docker image**. We have configured it so the backend, sandbox, and frontend all reside in a single deployable artifact.
+The easiest way to run Argus is via the **published Docker image** on GitHub Container Registry — no local build required.
 
 ### 1. Prerequisites
-- **Docker** and **Docker Compose**
+- **Docker Desktop**
 - A Supabase project (for PostgreSQL)
-- A Qdrant Cloud cluster (or equivalent vector database)
+- A Qdrant Cloud cluster (for vector search)
 
 ### 2. Environment Variables
-Copy the example environment file and update it with your actual keys:
 ```bash
 cp .env.example .env
+# Fill in your Supabase, Qdrant, Jina, and LLM API keys
 ```
 
-### 3. Start the application
-You can spin up the entire 3-tier architecture simultaneously via the root `docker-compose`:
+### 3. Pull and run
 ```bash
-docker-compose up --build
+docker compose pull
+docker compose up
 ```
 
-You can optionally run specific services by passing the `SERVICE` environment variable directly to the image:
+This pulls `ghcr.io/kr1shnasomani/argus:latest` and starts all three services via **supervisord** inside a single container:
+
+| Service | URL |
+|---|---|
+| **Frontend UI** | [http://localhost:5173](http://localhost:5173) |
+| **Backend API** | [http://localhost:8005/docs](http://localhost:8005/docs) |
+| **Sandbox API** | [http://localhost:8001/docs](http://localhost:8001/docs) |
+
+To stop: `docker compose down`
+
+You can target a single service with the `SERVICE` variable:
 ```bash
-docker run --env-file .env -e SERVICE=frontend -p 5173:5173 argus-all:latest
+docker run --env-file .env -e SERVICE=backend -p 8005:8005 ghcr.io/kr1shnasomani/argus:latest
 ```
-*(Valid service targets: `backend`, `frontend`, `sandbox`, `all`)*
+*(Valid targets: `backend`, `frontend`, `sandbox`, `all`)*
 
-When running with `SERVICE=all`, the single container manages:
-- **Frontend UI** at [http://localhost:5173](http://localhost:5173) 
-- **Backend API** at [http://localhost:8005](http://localhost:8005)
-- **Sandbox API** at [http://localhost:8001](http://localhost:8001)
-
-*For manual setup instructions (without Docker), please see the [SETUP.md](SETUP.md) guide.*
+*For manual setup without Docker, see [SETUP.md](SETUP.md).*
 
 ---
 
@@ -188,9 +194,12 @@ Argus uses **GitHub Actions** for continuous integration and deployment:
 
 | Workflow | Trigger | Tasks |
 |----------|---------|-------|
-| **backend-ci.yml** | Push to any branch | Linting, type checking, pytest |
-| **frontend-ci.yml** | Push to any branch | ESLint, TypeScript, build verification |
-| **deploy.yml** | Push to `main` + tests pass | Auto-deploy to Render & Vercel |
+| **backend-ci.yml** | Push/PR on `backend/**` | Linting, type checking, pytest |
+| **frontend-ci.yml** | Push/PR on `frontend/**` | ESLint, TypeScript, build verification |
+| **docker-image-ci.yml** | Push/PR touching Dockerfile or source | Build-only Docker image check (no push) |
+| **docker-publish.yml** | Push to `main` or version tag | Builds & pushes `ghcr.io/kr1shnasomani/argus` to GHCR |
+| **codeql.yml** | Push/PR to `main` + weekly | Security scanning (Python, TypeScript, Actions) |
+| **deploy.yml** | Push to `main` + CI passes | Auto-deploy to Render & Vercel |
 
 ---
 
