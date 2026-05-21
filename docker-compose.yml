@@ -1,6 +1,7 @@
 services:
   # ── Backend API ─────────────────────────────────────────────── port 8005 ──
   backend:
+    container_name: backend
     image: ghcr.io/kr1shnasomani/argus:latest
     build:
       context: .
@@ -9,8 +10,6 @@ services:
       - "8005:8005"
     environment:
       - SERVICE=backend
-      # When running as separate containers, backend must reach sandbox by
-      # its Docker service name, not localhost
       - SANDBOX_URL=http://sandbox:8001
     env_file:
       - .env
@@ -20,6 +19,7 @@ services:
 
   # ── Sandbox API ─────────────────────────────────────────────── port 8001 ──
   sandbox:
+    container_name: sandbox
     image: ghcr.io/kr1shnasomani/argus:latest
     build:
       context: .
@@ -34,6 +34,7 @@ services:
 
   # ── Frontend UI ─────────────────────────────────────────────── port 5173 ──
   frontend:
+    container_name: frontend
     image: ghcr.io/kr1shnasomani/argus:latest
     build:
       context: .
