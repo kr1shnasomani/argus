@@ -25,6 +25,9 @@ on:
       - "supervisord.conf"
       - "docker-entrypoint.sh"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Docker image
