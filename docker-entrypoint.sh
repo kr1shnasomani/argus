@@ -11,10 +11,10 @@ echo "Starting Argus Service: $SERVICE"
 
 if [ "$SERVICE" = "backend" ]; then
     cd /app/backend
-    exec /app/backend/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8005
+    exec uvicorn api.main:app --host 0.0.0.0 --port 8005
 elif [ "$SERVICE" = "sandbox" ]; then
     cd /app/sandbox
-    exec /app/sandbox/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+    exec uvicorn main:app --host 0.0.0.0 --port 8001
 elif [ "$SERVICE" = "frontend" ]; then
     cd /app/frontend
     exec npm run preview -- --host 0.0.0.0 --port 5173
