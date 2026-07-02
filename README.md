@@ -88,13 +88,13 @@ docker compose pull
 docker compose up
 ```
 
-This pulls `ghcr.io/kr1shnasomani/argus:latest` and starts all three services via **supervisord** inside a single container:
+This pulls `ghcr.io/kr1shnasomani/argus:latest` and starts **3 separate containers** in Docker Desktop:
 
-| Service | URL |
+| Container | URL |
 |---|---|
-| **Frontend UI** | [http://localhost:5173](http://localhost:5173) |
-| **Backend API** | [http://localhost:8005/docs](http://localhost:8005/docs) |
-| **Sandbox API** | [http://localhost:8001/docs](http://localhost:8001/docs) |
+| `argus-frontend` | [http://localhost:5173](http://localhost:5173) |
+| `argus-backend` | [http://localhost:8005/docs](http://localhost:8005/docs) |
+| `argus-sandbox` | [http://localhost:8001/docs](http://localhost:8001/docs) |
 
 To stop: `docker compose down`
 
@@ -104,7 +104,7 @@ docker run --env-file .env -e SERVICE=backend -p 8005:8005 ghcr.io/kr1shnasomani
 ```
 *(Valid targets: `backend`, `frontend`, `sandbox`, `all`)*
 
-*For manual setup without Docker, see [SETUP.md](SETUP.md).*
+*For manual setup without Docker, see [docs/SETUP.md](docs/SETUP.md).*
 
 ---
 
@@ -207,7 +207,8 @@ Argus uses **GitHub Actions** for continuous integration and deployment:
 
 | Document | Purpose |
 |----------|---------|
-| **[API.md](API.md)** | Complete API endpoint reference |
-| **[DATABASE.md](DATABASE.md)** | Supabase + Qdrant schema |
-| **[SOLUTION.md](SOLUTION.md)** | Authoritative design blueprint (read-only) |
+| **[docs/API.md](docs/API.md)** | Complete API endpoint reference |
+| **[docs/DATABASE.md](docs/DATABASE.md)** | Supabase + Qdrant schema |
+| **[docs/SOLUTION.md](docs/SOLUTION.md)** | Authoritative design blueprint (read-only) |
+| **[docs/SETUP.md](docs/SETUP.md)** | Local development and Docker setup |
 | **[AGENTS.md](AGENTS.md)** | AI agent development instructions |

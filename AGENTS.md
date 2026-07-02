@@ -14,9 +14,10 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 
 | Document | Role |
 |---|---|
-| **`SOLUTION.md`** | Read-only. Product intent, context, edge cases. Read for *why*. **Do not modify unless the user explicitly asks.** |
-| **`DATABASE.md`** | Database schema and table reference. |
-| **`API.md`** | API endpoint reference. |
+| **`docs/SOLUTION.md`** | Read-only. Product intent, context, edge cases. Read for *why*. **Do not modify unless the user explicitly asks.** |
+| **`docs/DATABASE.md`** | Database schema and table reference. |
+| **`docs/API.md`** | API endpoint reference. |
+| **`docs/SETUP.md`** | Local development and Docker setup guide. |
 | **`AGENTS.md`** | This file — operational instructions for AI agents. |
 
 ---
@@ -72,6 +73,7 @@ Argus is an intelligent IT support ticket auto-handling system with confidence-b
 
 ```
 argus/
+├── docs/                 SOLUTION.md, DATABASE.md, API.md, SETUP.md
 ├── backend/
 │   ├── api/routes/       FastAPI route handlers
 │   │                     tickets.py, agent.py, config.py, metrics.py, audit.py
@@ -98,7 +100,8 @@ argus/
 │   └── types/            TypeScript type definitions
 ├── tests/                pytest unit and integration tests
 ├── scripts/              seeding and operational scripts
-└── data/                 synthetic data CSV and cluster_map.json
+├── data/                 seed data CSVs and cluster_map.json
+└── database/             schema.sql
 ```
 
 ---

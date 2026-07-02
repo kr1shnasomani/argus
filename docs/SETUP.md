@@ -10,7 +10,7 @@ This guide covers both the recommended Docker-based setup and the manual fallbac
 |---|---|---|
 | [Docker Desktop](https://docs.docker.com/get-docker/) | ✅ Required | ❌ Not needed |
 | [Python 3.11+](https://www.python.org/downloads/) | ❌ Not needed | ✅ Required |
-| [Node.js 18+](https://nodejs.org/) | ❌ Not needed | ✅ Required |
+| [Node.js 20+](https://nodejs.org/) | ❌ Not needed | ✅ Required |
 | [Git](https://git-scm.com/) | ✅ Required | ✅ Required |
 | Supabase project | ✅ Required | ✅ Required |
 | Qdrant Cloud cluster | ✅ Required | ✅ Required |
@@ -19,7 +19,7 @@ This guide covers both the recommended Docker-based setup and the manual fallbac
 
 ## 🐳 Quick Start with Docker (Recommended)
 
-The published image on **GitHub Container Registry (GHCR)** bundles the frontend, backend, and sandbox into a single deployable container so you never have to build locally.
+The published image on **GitHub Container Registry (GHCR)** bundles the frontend, backend, and sandbox so you never have to build locally.
 
 ### 1. Clone the repository
 
@@ -35,26 +35,26 @@ cp .env.example .env
 # Edit .env with your actual API keys (Supabase, Qdrant, Jina, Groq, Gemini, OpenRouter)
 ```
 
-### 3. Run (two modes)
+### 3. Run
 
-**Mode A — build locally** *(use this until the image is on GHCR, or after code changes)*
-```bash
-docker compose up --build
-```
-
-**Mode B — pull from GHCR** *(use this once the workflow has pushed the multi-arch image)*
+**Mode A — pull from GHCR** *(recommended — no build required)*
 ```bash
 docker compose pull
-docker compose up
+docker compose up -d
+```
+
+**Mode B — build locally** *(use after code changes)*
+```bash
+docker compose up --build -d
 ```
 
 Docker Desktop will show **3 separate containers**:
 
 | Container | URL |
 |---|---|
-| `argus-backend-1` | [http://localhost:8005/docs](http://localhost:8005/docs) |
-| `argus-sandbox-1` | [http://localhost:8001/docs](http://localhost:8001/docs) |
-| `argus-frontend-1` | [http://localhost:5173](http://localhost:5173) |
+| `argus-backend` | [http://localhost:8005/docs](http://localhost:8005/docs) |
+| `argus-sandbox` | [http://localhost:8001/docs](http://localhost:8001/docs) |
+| `argus-frontend` | [http://localhost:5173](http://localhost:5173) |
 
 ### 4. Individual service control
 
@@ -74,17 +74,7 @@ docker compose logs -f backend
 docker compose down
 ```
 
-Docker Desktop will pull `ghcr.io/kr1shnasomani/argus:latest` and start three services inside the container managed by **supervisord**:
-
-| Service | URL |
-|---|---|
-| **Frontend UI** | [http://localhost:5173](http://localhost:5173) |
-| **Backend API** | [http://localhost:8005/docs](http://localhost:8005/docs) |
-| **Sandbox API** | [http://localhost:8001/docs](http://localhost:8001/docs) |
-
-To stop: `docker compose down`
-
-### 4. Pull image directly (without Compose)
+### 5. Pull image directly (without Compose)
 
 ```bash
 docker pull ghcr.io/kr1shnasomani/argus:latest
@@ -98,7 +88,7 @@ docker run --rm \
   ghcr.io/kr1shnasomani/argus:latest
 ```
 
-### 5. Run individual services
+### 6. Run individual services
 
 You can target a specific tier by setting the `SERVICE` environment variable:
 
@@ -111,15 +101,6 @@ docker run --env-file .env -e SERVICE=sandbox -p 8001:8001 ghcr.io/kr1shnasomani
 
 # Frontend only
 docker run --env-file .env -e SERVICE=frontend -p 5173:5173 ghcr.io/kr1shnasomani/argus:latest
-```
-
-### 6. Build locally (if you've made code changes)
-
-To build the image from source instead of pulling:
-
-```bash
-# In docker-compose.yml, comment out 'image:' and uncomment the 'build:' block, then:
-docker compose up --build
 ```
 
 ---

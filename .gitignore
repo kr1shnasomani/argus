@@ -41,8 +41,6 @@ data/cluster_map.json
 htmlcov/
 .coverage
 coverage.xml
-test_*.py  # Temporary test files
-*_test.py
 
 # Logs
 *.log
