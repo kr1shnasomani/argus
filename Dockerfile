@@ -32,6 +32,9 @@ RUN cd frontend && rm -f package-lock.json && npm install
 
 # Copy frontend source and build
 COPY frontend/ frontend/
+# Allow overriding the API URL at build time for local Docker dev
+ARG VITE_API_URL
+RUN if [ -n "$VITE_API_URL" ]; then printf 'VITE_API_URL=%s\n' "$VITE_API_URL" > frontend/.env.production.local; fi
 RUN cd frontend && npm run build
 
 # ── Application source ────────────────────────────────────────────────────────
